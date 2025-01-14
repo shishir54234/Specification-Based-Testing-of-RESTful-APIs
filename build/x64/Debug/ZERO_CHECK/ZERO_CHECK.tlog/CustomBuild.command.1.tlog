@@ -1,0 +1,10 @@
+^C:\USERS\SHAHI\DOWNLOADS\ASSINGNMENT4\ASSINGNMENT4\BUILD\CMAKEFILES\D2BB437AA02710AE8F649832A5CA92D2\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\cmake-3.30.3-windows-x86_64\bin\cmake.exe" -SC:/Users/shahi/Downloads/assingnment4/assingnment4 -BC:/Users/shahi/Downloads/assingnment4/assingnment4/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/shahi/Downloads/assingnment4/assingnment4/build/ASTTests.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
