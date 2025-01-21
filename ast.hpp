@@ -26,7 +26,13 @@ public:
     std::string name;
     std::unique_ptr<TypeExpr> type;
 };
-
+class fundecl{
+    public:
+    std::string name;
+    std::unique_ptr<TypeExpr> params;
+    std::unique_ptr<TypeExpr> outp;
+    fundecl(std::string name, std::unique_ptr<TypeExpr> param, std::unique_ptr<TypeExpr> outp): name(std::move(name)), params(std::move(param)), outp(std::move(outp)){};
+};
 class TypeExpr
 {
 public:
@@ -165,8 +171,8 @@ public:
 class Tuple : public Expr
 {
 public:
-    explicit Tuple(std::unique_ptr<Expr> expr) : expr(std::move(expr)) {}
-    std::unique_ptr<Expr> expr;
+    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : expr(std::move(expr)) {}
+    std::vector<std::unique_ptr<Expr>> expr;
 };
 
 // Function Declaration
@@ -213,6 +219,7 @@ public:
 class Block
 {
 public:
+    
     // Implementation details
 };
 
@@ -224,12 +231,12 @@ public:
          std::vector<std::unique_ptr<TypeDecl>> types,
          std::unique_ptr<Init> init,
          std::vector<std::unique_ptr<FuncDecl>> functions,
-         std::vector<std::unique_ptr<Block>> blocks)
+         std::vector<std::unique_ptr<API>> blocks)
         : globals(std::move(globals)), types(std::move(types)), init(std::move(init)), functions(std::move(functions)), blocks(std::move(blocks)) {}
 
     std::vector<std::unique_ptr<Decl>> globals;
     std::vector<std::unique_ptr<TypeDecl>> types;
     std::unique_ptr<Init> init;
     std::vector<std::unique_ptr<FuncDecl>> functions;
-    std::vector<std::unique_ptr<Block>> blocks;
+    std::vector<std::unique_ptr<API>> blocks;
 };
