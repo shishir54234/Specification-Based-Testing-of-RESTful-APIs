@@ -59,11 +59,16 @@ unique_ptr<Expr> convert(unique_ptr<Expr> &expr, SymbolTable *symtable, const st
 
     if (auto map = dynamic_cast<Map *>(expr.get()))
     {
-        auto keyExpr = make_unique<Expr>(*map->value.first);
-        auto valueExpr = make_unique<Expr>(*map->value.second);
-        auto key = convert(keyExpr, symtable, add);
-        auto value = convert(valueExpr, symtable, add);
-        return make_unique<Map>(make_pair(std::move(key), std::move(value)));
+        vector<pair<unique_ptr<Expr>, unique_ptr<Expr>>> ret;
+        for (int i = 0; i < map->value.size(); i++)
+        {
+            auto keyExpr = make_unique<Expr>(*map->value[i].first);
+            auto valueExpr = make_unique<Expr>(*map->value[i].second);
+            auto key = convert(keyExpr, symtable, add);
+            auto value = convert(valueExpr, symtable, add);
+            ret.push_back(make_pair(std::move(key), std::move(value)));
+        }
+        return make_unique<Map>(std::move(ret));
     }
 
     if (auto tuple = dynamic_cast<Tuple *>(expr.get()))
@@ -84,6 +89,7 @@ unique_ptr<Stmt> makeStmt(unique_ptr<Expr> expr){
     unique_ptr<FuncCallStmt> fs=std::make_unique<FuncCallStmt>(std::move(call));
     return std::move(fs);
 }
+
 Program convert(Spec &apispec, SymbolTable *symtable){
     vector<unique_ptr<Stmt>> program_stmts;
     for(int i=0;i<apispec.blocks.size();i++){
@@ -93,6 +99,8 @@ Program convert(Spec &apispec, SymbolTable *symtable){
         auto call=std::move(currblock->call);
         auto response=std::move(currblock->response);
         auto post = std::move(response.second);
+        
+        vector<unique_ptr<Expr>> InputVariables;
 
         auto pre1=convert(pre,currtable,to_string(i));
         auto callexpr=std::make_unique<Expr>(*call);

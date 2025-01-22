@@ -102,6 +102,7 @@ public:
 //     std::string name;
 //     std::unique_ptr<TypeExpr> constraint; // Optional constraint on the type variable
 // };
+
 class FuncType : public TypeExpr
 {
 public:
@@ -178,7 +179,20 @@ public:
     virtual ~Expr() = default;
     virtual void accept(ASTVisitor& visitor) const = 0;
 };
+class PolymorphicFuncCall : public Expr
+{
+public:
+    PolymorphicFuncCall(
+        std::string name,
+        std::vector<std::unique_ptr<TypeExpr>> typeArgs,
+        std::vector<std::unique_ptr<Expr>> args) : name(std::move(name)),
+                                                   typeArgs(std::move(typeArgs)),
+                                                   args(std::move(args)) {}
 
+    std::string name;                                // Name of the polymorphic function
+    std::vector<std::unique_ptr<TypeExpr>> typeArgs; // Type arguments for polymorphism
+    std::vector<std::unique_ptr<Expr>> args;         // Regular arguments
+};
 class Var : public Expr
 {
 public:
@@ -225,11 +239,11 @@ public:
 class Map : public Expr
 {
 public:
-    explicit Map(std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>> value) : value(std::move(value)) {}
+    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : value(std::move(value)) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
-    std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>> value;
+    std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> value;
 };
 
 class Tuple : public Expr
