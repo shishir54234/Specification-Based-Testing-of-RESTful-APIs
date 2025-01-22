@@ -2,7 +2,7 @@
 #include <vector>
 #include <memory>
 #include <utility>
-
+#include "ASTVis.hpp"
 enum class HTTPResponseCode
 {
     OK_200,
@@ -37,6 +37,7 @@ class TypeExpr
 {
 public:
     virtual ~TypeExpr() = default;
+    virtual void accept(ASTVisitor &visitor) const = 0;
 };
 
 class VariantConstructor
@@ -50,21 +51,65 @@ class TypeConst : public TypeExpr
 {
 public:
     explicit TypeConst(std::string name) : name(std::move(name)) {}
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::string name;
 };
 
-class TypeVariable : public TypeExpr
-{
-public:
-    // Implementation details
-};
+// class TypeVariable : public TypeExpr
+// {
+// public:
+//     // Constructor for a basic type variable with just a name
+//     explicit TypeVariable(std::string name)
+//         : name(std::move(name)),
+//           constraint(nullptr) {}
 
+//     // Constructor for a type variable with a constraint
+//     TypeVariable(std::string name, std::unique_ptr<TypeExpr> constraint)
+//         : name(std::move(name)),
+//           constraint(std::move(constraint)) {}
+
+//     // Copy constructor (needed for type variable management)
+//     TypeVariable(const TypeVariable &other)
+//         : name(other.name),
+//           constraint(other.constraint ? other.constraint->clone() : nullptr) {}
+
+//     // Clone method for polymorphic copying
+//     virtual std::unique_ptr<TypeExpr> clone() const override
+//     {
+//         return std::make_unique<TypeVariable>(*this);
+//     }
+
+//     // Check if this type variable has a constraint
+//     bool hasConstraint() const
+//     {
+//         return constraint != nullptr;
+//     }
+
+//     // Getter for the constraint (if any)
+//     const TypeExpr *getConstraint() const
+//     {
+//         return constraint.get();
+//     }
+
+//     // Optional: Add a constraint after construction
+//     void addConstraint(std::unique_ptr<TypeExpr> newConstraint)
+//     {
+//         constraint = std::move(newConstraint);
+//     }
+
+//     std::string name;
+//     std::unique_ptr<TypeExpr> constraint; // Optional constraint on the type variable
+// };
 class FuncType : public TypeExpr
 {
 public:
     FuncType(std::vector<std::unique_ptr<TypeExpr>> params, std::unique_ptr<TypeExpr> returnType)
         : params(std::move(params)), returnType(std::move(returnType)) {}
-
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::vector<std::unique_ptr<TypeExpr>> params;
     std::unique_ptr<TypeExpr> returnType;
 };
@@ -74,7 +119,9 @@ class MapType : public TypeExpr
 public:
     MapType(std::unique_ptr<TypeExpr> domain, std::unique_ptr<TypeExpr> range)
         : domain(std::move(domain)), range(std::move(range)) {}
-
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::unique_ptr<TypeExpr> domain;
     std::unique_ptr<TypeExpr> range;
 };
@@ -84,7 +131,9 @@ class TupleType : public TypeExpr
 public:
     explicit TupleType(std::vector<std::unique_ptr<TypeExpr>> elements)
         : elements(std::move(elements)) {}
-
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::vector<std::unique_ptr<TypeExpr>> elements;
 };
 
@@ -93,7 +142,9 @@ class SetType : public TypeExpr
 public:
     explicit SetType(std::unique_ptr<TypeExpr> elementType)
         : elementType(std::move(elementType)) {}
-
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::unique_ptr<TypeExpr> elementType;
 };
 
@@ -125,12 +176,16 @@ class Expr
 {
 public:
     virtual ~Expr() = default;
+    virtual void accept(ASTVisitor& visitor) const = 0;
 };
 
 class Var : public Expr
 {
 public:
     explicit Var(std::string name) : name(std::move(name)) {}
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::string name;
 };
 
@@ -139,7 +194,9 @@ class FuncCall : public Expr
 public:
     FuncCall(std::string name, std::vector<std::unique_ptr<Expr>> args)
         : name(std::move(name)), args(std::move(args)) {}
-
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::string name;
     std::vector<std::unique_ptr<Expr>> args;
 };
@@ -148,6 +205,9 @@ class Num : public Expr
 {
 public:
     explicit Num(int value) : value(value) {}
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     int value;
 };
 
@@ -156,7 +216,9 @@ class Set : public Expr
 public:
     explicit Set(std::vector<std::unique_ptr<Expr>> elements)
         : elements(std::move(elements)) {}
-
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::vector<std::unique_ptr<Expr>> elements;
 };
 
@@ -164,7 +226,9 @@ class Map : public Expr
 {
 public:
     explicit Map(std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>> value) : value(std::move(value)) {}
-
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>> value;
 };
 
@@ -172,6 +236,9 @@ class Tuple : public Expr
 {
 public:
     explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : expr(std::move(expr)) {}
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
     std::vector<std::unique_ptr<Expr>> expr;
 };
 
