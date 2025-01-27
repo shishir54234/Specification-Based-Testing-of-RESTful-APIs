@@ -89,7 +89,37 @@ unique_ptr<Stmt> makeStmt(unique_ptr<Expr> expr){
     unique_ptr<FuncCallStmt> fs=std::make_unique<FuncCallStmt>(std::move(call));
     return std::move(fs);
 }
-
+void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariables, string toadd, SymbolTable *symtable){
+    if (auto var = dynamic_cast<Var *>(expr.get())){
+        InputVariables.push_back(convert(expr,symtable,toadd));
+        return;
+    }
+    if (auto func = dynamic_cast<FuncCall *>(expr.get())){
+        for(auto &arg:func->args){
+            getInputVars(arg,InputVariables,toadd,symtable);
+        }
+    }
+    if(auto set=dynamic_cast<Set *>(expr.get())){
+        for(auto &element:set->elements){
+            getInputVars(element,InputVariables,toadd,symtable);
+        }   
+    }
+    if (auto tuple = dynamic_cast<Tuple *>(expr.get()))
+    {
+        for(auto &exp:tuple->expr){
+            getInputVars(exp,InputVariables,toadd,symtable);
+        }
+    }
+    if(auto map1=dynamic_cast<Map *>(expr.get())){
+        for(auto &element:map1->value){
+            getInputVars(reinterpret_cast<unique_ptr<Expr>&>(element.first), InputVariables, toadd, symtable);
+            getInputVars(element.second,InputVariables,toadd,symtable);
+        }
+    }
+    if(auto num=dynamic_cast<Num *>(expr.get())){
+        return;
+    }
+}
 Program convert(Spec &apispec, SymbolTable *symtable){
     vector<unique_ptr<Stmt>> program_stmts;
     for(int i=0;i<apispec.blocks.size();i++){
@@ -101,6 +131,9 @@ Program convert(Spec &apispec, SymbolTable *symtable){
         auto post = std::move(response.second);
         
         vector<unique_ptr<Expr>> InputVariables;
+        for(int i=0;i<call->args.size();i++){
+            getInputVars(call->args[i],InputVariables,to_string(i),currtable);
+        }
 
         auto pre1=convert(pre,currtable,to_string(i));
         auto callexpr=std::make_unique<Expr>(*call);

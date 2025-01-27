@@ -128,15 +128,19 @@ public:
         printIndent();
         std::cout << "Map:\n";
         indent++;
-        node.value.first->accept(*this);
-        node.value.second->accept(*this);
+        for(const auto &elem : node.value){
+            elem.first->accept(*this);
+            elem.second->accept(*this);
+        }
+        // node.value.first->accept(*this);
+        // node.value.second->accept(*this);
         indent--;
     }
 
     void visit(const Tuple &node) override
     {
         printIndent();
-        std::cout << "Tuple:\n";
+        std::cout << "Tuple\n";
         indent++;
         for (const auto &e : node.expr)
         {
