@@ -9,6 +9,15 @@
     <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\ast.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\visitor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\ASTVis.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\atc_ast.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\CMakeLists.txt" />

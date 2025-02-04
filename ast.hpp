@@ -3,6 +3,7 @@
 #include <memory>
 #include <utility>
 #include "ASTVis.hpp"
+using namespace std;
 enum class HTTPResponseCode
 {
     OK_200,
@@ -22,7 +23,10 @@ public:
     Decl(std::string name, std::unique_ptr<TypeExpr> typeExpr)
         : name(std::move(name)), type(std::move(typeExpr)) {}
     virtual ~Decl() = default;
-
+    virtual void accept(ASTVisitor &visitor) {
+        cout<<"hey\n";
+        visitor.visit(*this);
+    }
     std::string name;
     std::unique_ptr<TypeExpr> type;
 };
@@ -40,11 +44,15 @@ public:
     virtual void accept(ASTVisitor &visitor) const = 0;
 };
 
-class VariantConstructor
-{
-public:
-    // Add necessary fields
-};
+// class VariantConstructor
+// {
+// public:
+//     void accept(ASTVisitor &visitor) const
+//     {
+//         visitor.visit(*this);
+//     }
+//     // Add necessary fields
+// };
 
 // Type Expressions
 class TypeConst : public TypeExpr
@@ -150,27 +158,39 @@ public:
 };
 
 // Type Declarations
-class TypeDecl
-{
-public:
-    virtual ~TypeDecl() = default;
-};
+// class TypeDecl
+// {
+// public:
+//     virtual ~TypeDecl() = default;
+//     virtual void accept(ASTVisitor &visitor) const
+//     {
+//         visitor.visit(*this);
+//     }
+// };
 
-class VariantDecl : public TypeDecl
-{
-public:
-    std::vector<VariantConstructor> constructors;
-};
+// class VariantDecl : public TypeDecl
+// {
+// public:
+//     std::vector<VariantConstructor> constructors;
+//     void accept(ASTVisitor &visitor) const override
+//     {
+//         visitor.visit(*this);
+//     }
+// };
 
-class RecordDecl : public TypeDecl
-{
-public:
-    RecordDecl(std::string name, std::vector<std::unique_ptr<Decl>> fields)
-        : recname(std::move(name)), fields(std::move(fields)) {}
+// class RecordDecl : public TypeDecl
+// {
+// public:
+//     RecordDecl(std::string name, std::vector<std::unique_ptr<Decl>> fields)
+//         : recname(std::move(name)), fields(std::move(fields)) {}
 
-    std::string recname;
-    std::vector<std::unique_ptr<Decl>> fields;
-};
+//     std::string recname;
+//     std::vector<std::unique_ptr<Decl>> fields;
+//     void accept(ASTVisitor &visitor) const override
+//     {
+//         visitor.visit(*this);
+//     }
+// };
 
 // Expressions
 class Expr
@@ -192,6 +212,10 @@ public:
     std::string name;                                // Name of the polymorphic function
     std::vector<std::unique_ptr<TypeExpr>> typeArgs; // Type arguments for polymorphism
     std::vector<std::unique_ptr<Expr>> args;         // Regular arguments
+    void accept(ASTVisitor &visitor) const override
+    {
+        visitor.visit(*this);
+    }
 };
 class Var : public Expr
 {
@@ -261,13 +285,16 @@ class FuncDecl
 {
 public:
     FuncDecl(std::string name,
-             std::vector<std::unique_ptr<Decl>> params,
-             std::pair<HTTPResponseCode, std::unique_ptr<TypeExpr>> returnType)
+             std::vector<std::unique_ptr<TypeExpr>> params,
+             std::pair<HTTPResponseCode, vector<std::unique_ptr<TypeExpr>>> returnType)
         : name(std::move(name)), params(std::move(params)), returnType(std::move(returnType)) {}
-
+    void accept(ASTVisitor &visitor) const
+    {
+        visitor.visit(*this);
+    }
     std::string name;
-    std::vector<std::unique_ptr<Decl>> params;
-    std::pair<HTTPResponseCode, std::unique_ptr<TypeExpr>> returnType;
+    std::vector<std::unique_ptr<TypeExpr>> params;
+    std::pair<HTTPResponseCode, vector<std::unique_ptr<TypeExpr>>> returnType;
 };
 
 // Initialization
@@ -277,47 +304,69 @@ public:
 
     Init(std::string varName, std::unique_ptr<Expr> expression)
         : varName(std::move(varName)), expr(std::move(expression)) {}
-
+    void accept(ASTVisitor &visitor) const
+    {
+        visitor.visit(*this);
+    }
     std::string varName;
     std::unique_ptr<Expr> expr;
 };
-
+class Response{
+    public:
+    HTTPResponseCode code;
+    std::unique_ptr<Expr> expr;
+    Response(HTTPResponseCode code, std::unique_ptr<Expr> expr): code(code), expr(std::move(expr)){};
+    void accept(ASTVisitor &visitor) const
+    {
+        visitor.visit(*this);
+    }
+};
+class APIcall{
+    public:
+    std::unique_ptr<FuncCall> call;
+    Response response;
+    void accept(ASTVisitor &visitor) const
+    {
+        visitor.visit(*this);
+    }
+    APIcall(std::unique_ptr<FuncCall> call, Response response): call(std::move(call)), response(std::move(response)){};
+};
 // API
 class API
 {
 public:
     API(std::unique_ptr<Expr> precondition,
-        std::unique_ptr<FuncCall> functionCall,
-        std::pair<HTTPResponseCode, std::unique_ptr<Expr>> response)
+        std::unique_ptr<APIcall> functionCall,
+        Response response)
         : pre(std::move(precondition)), call(std::move(functionCall)), response(std::move(response)) {}
-
+    void accept(ASTVisitor &visitor) const
+    {
+        visitor.visit(*this);
+    }
     std::unique_ptr<Expr> pre;
-    std::unique_ptr<FuncCall> call;
-    std::pair<HTTPResponseCode, std::unique_ptr<Expr>> response;
+    std::unique_ptr<APIcall> call;
+    Response response;
 };
 
 // Block class (placeholder as it wasn't fully specified in the grammar)
-class Block
-{
-public:
-    
-    // Implementation details
-};
-
 // Top-level Spec class
 class Spec
 {
 public:
     Spec(std::vector<std::unique_ptr<Decl>> globals,
-         std::vector<std::unique_ptr<TypeDecl>> types,
-         std::unique_ptr<Init> init,
+        //  std::vector<std::unique_ptr<TypeDecl>> types,
+         std::vector<unique_ptr<Init>> init,
          std::vector<std::unique_ptr<FuncDecl>> functions,
          std::vector<std::unique_ptr<API>> blocks)
-        : globals(std::move(globals)), types(std::move(types)), init(std::move(init)), functions(std::move(functions)), blocks(std::move(blocks)) {}
-
+        : globals(std::move(globals)), init(std::move(init)), functions(std::move(functions)), blocks(std::move(blocks)) {}
+    void accept(ASTVisitor &visitor) const
+    {
+        visitor.visit(*this);
+    }
     std::vector<std::unique_ptr<Decl>> globals;
-    std::vector<std::unique_ptr<TypeDecl>> types;
-    std::unique_ptr<Init> init;
+    // std::vector<std::unique_ptr<TypeDecl>> types;
+    std::vector<unique_ptr<Init>> init;
     std::vector<std::unique_ptr<FuncDecl>> functions;
     std::vector<std::unique_ptr<API>> blocks;
+    
 };

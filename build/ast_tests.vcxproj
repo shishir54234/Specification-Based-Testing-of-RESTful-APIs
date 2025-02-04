@@ -325,6 +325,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\ast.hpp" />
+    <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\visitor.hpp" />
+    <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\ASTVis.hpp" />
+    <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\atc_ast.hpp" />
     <ClCompile Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\ast_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
