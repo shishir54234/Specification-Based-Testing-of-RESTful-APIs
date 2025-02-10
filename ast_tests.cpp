@@ -2,6 +2,7 @@
 #include <cassert>
 #include <memory>
 #include "visitor.hpp"
+#include "algo.hpp"
 using namespace std;
 // Assuming the AST classes are in "ast.hpp"
 
@@ -58,6 +59,12 @@ void testEverything(){
     auto spec = std::make_unique<Spec>(move(globals), move(inits), move(funcDecls), move(apis));
     PrintVisitor visitor;
     spec->accept(visitor);
+
+    SymbolTable symtable;
+    SymbolTable sym1;
+    sym1.symtable.insert(Var("username"));
+    
+
 
 }
 void test1(){

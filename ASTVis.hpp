@@ -1,12 +1,15 @@
 #pragma once
 #include <iostream>
-
+#ifndef ASTVIS_HPP
+#define ASTVIS_HPP
 // Forward declarations
 class TypeConst;
 class FuncType;
 class MapType;
 class TupleType;
 class SetType;
+class Expr;
+class TypeExpr;
 class Var;
 class FuncCall;
 class Num;
@@ -21,6 +24,11 @@ class Response;
 class API;
 class Init;
 class Spec;
+
+class Stmt;
+class Assign;
+class FuncCallStmt;
+class Program;
 
 class ASTVisitor
 {
@@ -57,4 +65,11 @@ public:
 
     // Specification visitor
     virtual void visit(const Spec &node) = 0;
+
+    // Statement visitors
+    // virtual void visit(const Stmt &node) = 0;
+    virtual void visit(const Assign &node) = 0;
+    virtual void visit(const FuncCallStmt &node) = 0;
+    virtual void visit(const Program &node) = 0;
 };
+#endif

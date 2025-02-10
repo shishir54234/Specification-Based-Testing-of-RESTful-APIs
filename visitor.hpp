@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 #include "ast.hpp"
-
 class PrintVisitor : public ASTVisitor
 {
 private:
@@ -54,16 +53,23 @@ public:
         indent++;
 
         printIndent();
+
         std::cout << "Domain:\n";
-        indent++;
-        node.domain->accept(*this);
-        indent--;
+        if(node.domain){
+            indent++;
+            node.domain->accept(*this);
+            indent--;
+        }
+        
 
         printIndent();
         std::cout << "Range:\n";
-        indent++;
-        node.range->accept(*this);
-        indent--;
+        if(node.range){
+            indent++;
+            node.range->accept(*this);
+            indent--;
+        }
+        
 
         indent--;
     }
@@ -75,7 +81,7 @@ public:
         indent++;
         for (const auto &elem : node.elements)
         {
-            elem->accept(*this);
+            if(elem)elem->accept(*this);
         }
         indent--;
     }
@@ -84,9 +90,12 @@ public:
     {
         printIndent();
         std::cout << "SetType:\n";
-        indent++;
-        node.elementType->accept(*this);
-        indent--;
+        if(node.elementType){
+            indent++;
+            node.elementType->accept(*this);
+            indent--;
+        }
+        
     }
 
     // Expression visitors
@@ -254,12 +263,15 @@ public:
         indent--;
 
         printIndent();
-        std::cout << "Response (HTTP Code: " << static_cast<int>(node.response.code) << "):\n";
-        indent++;
-        node.response.expr->accept(*this);
-        indent--;
+        std::cout << "Response (HTTP Code: " << 123 << "):\n";
+        if (node.response.expr){
+            indent++;
+            node.response.expr->accept(*this);
+            indent--;
+        }
+            
 
-        indent--;
+        
     }
 
     void visit(const API &node) override    
@@ -291,10 +303,15 @@ public:
     void visit(const Response &node) override
     {
         printIndent();
-        std::cout << "Response (HTTP Code: " << static_cast<int>(node.code) << "):\n";
-        indent++;
-        node.expr->accept(*this);
-        indent--;
+        std::cout << "Response (HTTP Code: " << 123 << "):\n";
+        cout << "HELLO\n";
+        if(node.expr){
+            cout<<"HELLO\n";
+            indent++;
+            node.expr->accept(*this);
+            indent--;
+        }
+        
     }
     // Initialization visitor
     void visit(const Init &node) override
@@ -362,5 +379,33 @@ public:
         indent--;
 
         indent--;
+    }
+    void visit(const Assign &node) override{
+        cout<<"Assign: ";
+        if (node.left) // Check if left is not null
+            node.left->accept(*this);
+        else
+            std::cout << "<null_var>";
+        cout<<" = ";
+
+        if(node.right){
+            node.right->accept(*this);
+        }
+        else{
+            std::cout << "<null_expr>";
+        }
+        cout<<"\n";
+    }
+    void visit(const FuncCallStmt &node) override{
+        cout<<"FuncCallStmt: ";
+        node.call->accept(*this);
+        cout<<"\n";
+    }
+    void visit(const Program &node) override{
+        cout<<"Program:\n";
+        for (const auto &func : node.statements)
+        {
+            func.get()->accept(*this);
+        }
     }
 };

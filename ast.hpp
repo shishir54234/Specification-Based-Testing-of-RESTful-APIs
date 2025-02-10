@@ -4,6 +4,8 @@
 #include <utility>
 #include "ASTVis.hpp"
 using namespace std;
+#ifndef AST_HPP
+#define AST_HPP
 enum class HTTPResponseCode
 {
     OK_200,
@@ -12,9 +14,9 @@ enum class HTTPResponseCode
 };
 
 // Forward declarations
-class TypeExpr;
-class Expr;
-class FuncCall;
+// class TypeExpr;
+// class Expr;
+// class FuncCall;
 
 // Base classes for different types of declarations
 class Decl
@@ -224,6 +226,11 @@ public:
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
+    bool operator<(const Var &other) const
+    {
+        return name < other.name; // Lexicographical comparison
+    }
+
     std::string name;
 };
 
@@ -370,3 +377,45 @@ public:
     std::vector<std::unique_ptr<API>> blocks;
     
 };
+
+class Stmt
+{
+public:
+    virtual ~Stmt() = default;
+    virtual void accept(ASTVisitor &visitor) const = 0;
+};
+
+// Assignment statement: l = r
+class Assign : public Stmt
+{
+public:
+    Assign(std::unique_ptr<Var> left, std::unique_ptr<Expr> right)
+        : left(std::move(left)), right(std::move(right)) {}
+
+    std::unique_ptr<Var> left;
+    std::unique_ptr<Expr> right;
+};
+
+// Function call statement
+class FuncCallStmt : public Stmt
+{
+public:
+    explicit FuncCallStmt(std::unique_ptr<FuncCall> call)
+        : call(std::move(call)) {}
+    void accept(ASTVisitor &visitor) const override
+    {
+        visitor.visit(*this);
+    }
+    std::unique_ptr<FuncCall> call;
+};
+
+// Program is the root of our AST
+class Program
+{
+public:
+    explicit Program(std::vector<std::unique_ptr<Stmt>> statements)
+        : statements(std::move(statements)) {}
+
+    std::vector<std::unique_ptr<Stmt>> statements;
+};
+#endif
