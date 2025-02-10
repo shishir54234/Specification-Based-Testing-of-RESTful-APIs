@@ -391,7 +391,10 @@ class Assign : public Stmt
 public:
     Assign(std::unique_ptr<Var> left, std::unique_ptr<Expr> right)
         : left(std::move(left)), right(std::move(right)) {}
-
+    void accept(ASTVisitor &visitor) const override
+    {
+        visitor.visit(*this);
+    }
     std::unique_ptr<Var> left;
     std::unique_ptr<Expr> right;
 };
@@ -415,7 +418,10 @@ class Program
 public:
     explicit Program(std::vector<std::unique_ptr<Stmt>> statements)
         : statements(std::move(statements)) {}
-
+    void accept(ASTVisitor &visitor)
+    {
+        visitor.visit(*this);
+    }
     std::vector<std::unique_ptr<Stmt>> statements;
 };
 #endif

@@ -8,6 +8,9 @@
 #include <memory>
 using namespace std;
 #include "ast.hpp"
+#include "visitor.hpp"
+#ifndef ALGO_HPP
+#define ALGO_HPP
 class SymbolTable{
     public:
     vector<SymbolTable*> children;
@@ -22,7 +25,7 @@ class SymbolTable{
         }
     }
 };
-unique_ptr<Expr> convert(unique_ptr<Expr> &expr, SymbolTable *symtable, const string &add)
+unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const string &add)
 {
     if (!expr)
     {
@@ -31,10 +34,13 @@ unique_ptr<Expr> convert(unique_ptr<Expr> &expr, SymbolTable *symtable, const st
 
     if (auto var = dynamic_cast<Var *>(expr.get()))
     {
+        
         if (symtable->exists(*var))
         {
+            // cout <<"1"<< var->name << endl;
             return make_unique<Var>(var->name + add);
         }
+        // cout <<"0"<< var->name << endl;
         return make_unique<Var>(var->name);
     }
 
@@ -43,7 +49,7 @@ unique_ptr<Expr> convert(unique_ptr<Expr> &expr, SymbolTable *symtable, const st
         vector<unique_ptr<Expr>> args;
         for (auto &arg : func->args)
         {
-            args.push_back(convert(arg, symtable, add));
+            args.push_back(convert1(arg, symtable, add));
         }
         return make_unique<FuncCall>(func->name, std::move(args));
     }
@@ -58,7 +64,7 @@ unique_ptr<Expr> convert(unique_ptr<Expr> &expr, SymbolTable *symtable, const st
         vector<unique_ptr<Expr>> elements;
         for (auto &element : set->elements)
         {
-            elements.push_back(convert(element, symtable, add));
+            elements.push_back(convert1(element, symtable, add));
         }
         return make_unique<Set>(std::move(elements));
     }
@@ -68,8 +74,8 @@ unique_ptr<Expr> convert(unique_ptr<Expr> &expr, SymbolTable *symtable, const st
         vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> ret;
         for (int i = 0; i < map->value.size(); i++)
         {
-            auto key = convert(reinterpret_cast<unique_ptr<Expr>&>(map->value[i].first), symtable, add);
-            auto value = convert(map->value[i].second, symtable, add);
+            auto key = convert1(reinterpret_cast<unique_ptr<Expr>&>(map->value[i].first), symtable, add);
+            auto value = convert1(map->value[i].second, symtable, add);
             ret.push_back(make_pair(std::move(reinterpret_cast<unique_ptr<Var>&>(key)), std::move(value)));
         }
         return make_unique<Map>(std::move(ret));
@@ -80,7 +86,7 @@ unique_ptr<Expr> convert(unique_ptr<Expr> &expr, SymbolTable *symtable, const st
         vector<unique_ptr<Expr>> exprs;
         for (auto &exp : tuple->expr)
         {
-            exprs.push_back(convert(exp, symtable, add));
+            exprs.push_back(convert1(exp, symtable, add));
         }
         return make_unique<Tuple>(std::move(exprs));
     }
@@ -90,18 +96,20 @@ unique_ptr<Expr> convert(unique_ptr<Expr> &expr, SymbolTable *symtable, const st
 }
 unique_ptr<FuncCallStmt> makeStmt(unique_ptr<Expr> expr)
 {
-    // Create FuncCall from the expr rather than using make_unique directly
-    auto call = dynamic_cast<FuncCall *>(expr.get());
+    // Create Var from the expr rather than using make_unique directly
+    auto call = dynamic_cast<Var *>(expr.get());
     if (call)
     {
-        auto newCall = make_unique<FuncCall>(call->name, std::move(call->args));
-        return make_unique<FuncCallStmt>(std::move(newCall));
+        vector<unique_ptr<Expr>> args;
+        args.push_back(make_unique<Var>(call->name));
+        auto h=make_unique<FuncCall>("input", move(args));
+        return make_unique<FuncCallStmt>(std::move(h));
     }
     return nullptr;
 }
 void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariables, string toadd, SymbolTable *symtable){
     if (auto var = dynamic_cast<Var *>(expr.get())){
-        InputVariables.push_back(convert(expr,symtable,toadd));
+        InputVariables.push_back(convert1(expr,symtable,toadd));
         return;
     }
     if (auto func = dynamic_cast<FuncCall *>(expr.get())){
@@ -130,29 +138,39 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
         return;
     }
 }
-Program convert(Spec &apispec, SymbolTable *symtable){
+Program convert(const Spec *apispec, SymbolTable symtable){
     vector<unique_ptr<Stmt>> program_stmts;
-    for(int i=0;i<apispec.blocks.size();i++){
-        auto currtable=symtable->children[i];
-        auto currblock=std::move(apispec.blocks[i]);
+    for(int i=0;i<apispec->blocks.size();i++){
+        auto currtable=symtable.children[i];
+        auto currblock = std::move(const_cast<std::unique_ptr<API>&>(apispec->blocks[i]));
         auto pre=std::move(currblock->pre);
         auto call=std::move(currblock->call);
         auto response=std::move(currblock->response);
         auto post = std::move(response.expr);
         
         vector<unique_ptr<Expr>> InputVariables;
-        for(int i=0;i<call->call->args.size();i++){
-            getInputVars(call->call->args[i], InputVariables, to_string(i), currtable);
+        for(int j=0;j<call->call->args.size();j++){
+            getInputVars(call->call->args[j], InputVariables, to_string(i), currtable);
         }
-
-        auto pre1=convert(pre,currtable,to_string(i));
+        for(int j=0;j<InputVariables.size();j++){
+            program_stmts.push_back(makeStmt(std::move(InputVariables[j])));
+        }
+        auto pre1=convert1(pre,currtable,to_string(i));
         auto callexpr = std::make_unique<FuncCall>(call->call->name, std::move(call->call->args));
-        auto call1=convert(reinterpret_cast<unique_ptr<Expr>&>(callexpr),currtable,to_string(i));
-        auto post1=convert(post,currtable,to_string(i));
-
-        program_stmts.push_back(makeStmt(std::move(pre1)));
-        program_stmts.push_back(makeStmt(std::move(call1)));
-        program_stmts.push_back(makeStmt(std::move(post1)));
+        auto call1=convert1(reinterpret_cast<unique_ptr<Expr>&>(callexpr),currtable,to_string(i));
+        auto post1=convert1(post,currtable,to_string(i));
+        PrintVisitor p;
+        cout << program_stmts.size() << endl;
+        vector<unique_ptr<Expr>> v1;v1.push_back(std::move(pre1));
+        
+        unique_ptr<FuncCall> p2 = make_unique<FuncCall>("assume", std::move(v1));
+        unique_ptr<FuncCallStmt> c2=make_unique<FuncCallStmt>(move(p2));
+        program_stmts.push_back(std::move(c2));
+        
+        vector<unique_ptr<Expr>> v2; v2.push_back(std::move(post1));
+        unique_ptr<FuncCall> p3=make_unique<FuncCall>("assert", std::move(v2));
+        unique_ptr<FuncCallStmt> c3=make_unique<FuncCallStmt>(move(p3));
+        program_stmts.push_back(std::move(c3));
         // auto response1=convert(response.first,currtable,to_string(i));
         // currblock->pre=std::move(pre1);
         // currblock->call=std::move(call1);
@@ -162,3 +180,4 @@ Program convert(Spec &apispec, SymbolTable *symtable){
     return Program(std::move(program_stmts));
 }
 
+#endif // ALGO_HPP

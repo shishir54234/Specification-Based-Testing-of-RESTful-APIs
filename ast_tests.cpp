@@ -33,7 +33,7 @@ void testEverything(){
 
     vector<unique_ptr<API>> apis;
     vector<unique_ptr<Expr>> pre_args;
-    pre_args.push_back(std::make_unique<Var>("u"));
+    pre_args.push_back(std::make_unique<Var>("username"));
     vector<unique_ptr<Expr>> h; h.push_back(std::make_unique<Var>("U"));
     pre_args.push_back(std::make_unique<FuncCall>("dom", move(h)));
     cout<<"Hello\n";
@@ -61,10 +61,14 @@ void testEverything(){
     spec->accept(visitor);
 
     SymbolTable symtable;
+    symtable.symtable.insert(Var("U"));
     SymbolTable sym1;
     sym1.symtable.insert(Var("username"));
-    
-
+    sym1.symtable.insert(Var("password"));
+    symtable.children.push_back(&sym1);
+    Program p = convert(spec.get(), symtable);
+    PrintVisitor visitor1;
+    p.accept(visitor1);
 
 }
 void test1(){
