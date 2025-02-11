@@ -13,7 +13,23 @@ enum class HTTPResponseCode
     CREATED_201,
     // Add other response codes as needed
 };
+enum ExpressionType {
+    MAP,
+    VAR,
+    NUM,
+    TUPLE,
+    SET,
+    FUNCTIONCALL
+};
 
+enum TypeExpression{
+    TYPE_CONST,
+    TYPE_VARIABLE,
+    FUNC_TYPE,
+    MAP_TYPE,
+    SET_TYPE,
+    TUPLE_TYPE
+};
 // Forward declarations
 // class TypeExpr;
 // class Expr;
@@ -30,6 +46,11 @@ public:
         cout<<"hey\n";
         visitor.visit(*this);
     }
+
+    void accept(Visitor* visitor){
+        visitor->visitTypeExpr(*type);
+    }
+    
     std::string name;
     std::unique_ptr<TypeExpr> type;
 };
@@ -45,6 +66,7 @@ class TypeExpr
 public:
     virtual ~TypeExpr() = default;
     virtual void accept(ASTVisitor &visitor) const = 0;
+    TypeExpression typeExpression;
 };
 
 // class VariantConstructor
@@ -61,9 +83,12 @@ public:
 class TypeConst : public TypeExpr
 {
 public:
-    explicit TypeConst(std::string name) : name(std::move(name)) {}
+    explicit TypeConst(std::string name) : name(std::move(name)), typeExpression (TypeExpression::TYPE_CONST) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor* visitor){
     }
     std::string name;
 };
@@ -118,9 +143,16 @@ class FuncType : public TypeExpr
 {
 public:
     FuncType(std::vector<std::unique_ptr<TypeExpr>> params, std::unique_ptr<TypeExpr> returnType)
-        : params(std::move(params)), returnType(std::move(returnType)) {}
+        : params(std::move(params)), returnType(std::move(returnType)), typeExpression (TypeExpression::FUNC_TYPE) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor* visitor){
+        for(auto& param: params){
+            visitor->visitTypeExpr(*param);
+        }
+        visitor->visitTypeExpr(*returnType);
     }
     std::vector<std::unique_ptr<TypeExpr>> params;
     std::unique_ptr<TypeExpr> returnType;
@@ -130,10 +162,16 @@ class MapType : public TypeExpr
 {
 public:
     MapType(std::unique_ptr<TypeExpr> domain, std::unique_ptr<TypeExpr> range)
-        : domain(std::move(domain)), range(std::move(range)) {}
+        : domain(std::move(domain)), range(std::move(range)), typeExpression (TypeExpression::MAP_TYPE) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
+
+    void accept(Visitor* visitor){
+        visitor->visitTypeExpr(*domain);
+        visitor->visitTypeExpr(*range);
+    }
+
     std::unique_ptr<TypeExpr> domain;
     std::unique_ptr<TypeExpr> range;
 };
@@ -142,9 +180,15 @@ class TupleType : public TypeExpr
 {
 public:
     explicit TupleType(std::vector<std::unique_ptr<TypeExpr>> elements)
-        : elements(std::move(elements)) {}
+        : elements(std::move(elements)), typeExpression (TypeExpression::TUPLE_TYPE) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor* visitor){
+        for(auto& e: elements){
+            visitor->visitTypeExpr(*e);
+        }
     }
     std::vector<std::unique_ptr<TypeExpr>> elements;
 };
@@ -153,9 +197,13 @@ class SetType : public TypeExpr
 {
 public:
     explicit SetType(std::unique_ptr<TypeExpr> elementType)
-        : elementType(std::move(elementType)) {}
+        : elementType(std::move(elementType)), typeExpression (TypeExpression::SET_TYPE) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor* visitor){
+        visitor->visitTypeExpr(*elementType);
     }
     std::unique_ptr<TypeExpr> elementType;
 };
@@ -201,10 +249,13 @@ class Expr
 public:
     virtual ~Expr() = default;
     virtual void accept(ASTVisitor& visitor) const = 0;
+    ExpressionType expressionType;
+
 };
 class PolymorphicFuncCall : public Expr
 {
 public:
+
     PolymorphicFuncCall(
         std::string name,
         std::vector<std::unique_ptr<TypeExpr>> typeArgs,
@@ -219,17 +270,30 @@ public:
     {
         visitor.visit(*this);
     }
+
+    void accept(Visitor* visitor){
+        for(auto& typeArg: typeArgs){
+            visitor->visitTypeExpr(*typeArg);
+        }
+
+        for(auto& arg: args){
+            visitor->visitExpr(*arg);
+        }
+    }
 };
 class Var : public Expr
 {
 public:
-    explicit Var(std::string name) : name(std::move(name)) {}
+    explicit Var(std::string name) : name(std::move(name)) , expressionType(ExpressionType::VAR){}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
     bool operator<(const Var &other) const
     {
         return name < other.name; // Lexicographical comparison
+    }
+
+    void accept(Visitor* visitor){
     }
 
     std::string name;
@@ -239,9 +303,15 @@ class FuncCall : public Expr
 {
 public:
     FuncCall(std::string name, std::vector<std::unique_ptr<Expr>> args)
-        : name(std::move(name)), args(std::move(args)) {}
+        : name(std::move(name)), args(std::move(args)) , expressionType(ExpressionType::FUNCTIONCALL) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor* visitor){
+        for(auto& arg: args){
+            visitor->visitFuncCall(*arg);
+        }
     }
     std::string name;
     std::vector<std::unique_ptr<Expr>> args;
@@ -250,10 +320,15 @@ public:
 class Num : public Expr
 {
 public:
-    explicit Num(int value) : value(value) {}
+    explicit Num(int value) : value(value), expressionType(ExpressionType::NUM) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
+
+    void accept(Visitor* visitor){
+        visitor->visitNum(*this);
+    }
+
     int value;
 };
 
@@ -261,9 +336,15 @@ class Set : public Expr
 {
 public:
     explicit Set(std::vector<std::unique_ptr<Expr>> elements)
-        : elements(std::move(elements)) {}
+        : elements(std::move(elements)) , expressionType(ExpressionType::SET) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor *visitor){
+        for(auto& e: elements){
+            visitor->visitExpr(*e);
+        }
     }
     std::vector<std::unique_ptr<Expr>> elements;
 };
@@ -271,9 +352,16 @@ public:
 class Map : public Expr
 {
 public:
-    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : value(std::move(value)) {}
+    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : value(std::move(value)) , expressionType(ExpressionType::MAP){}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor* visitor){
+        for(auto& v:value){
+            visitor->visitVar(*(v.first));
+            visitor->visitExpr(*(v.second));
+        }
     }
     std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> value;
 };
@@ -281,9 +369,15 @@ public:
 class Tuple : public Expr
 {
 public:
-    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : expr(std::move(expr)) {}
+    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : expr(std::move(expr)),expressionType (ExpressionType::TUPLE) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor *visitor){
+        for(auto& e: expr){
+            visitor->visitExpr(*e);
+        }
     }
     std::vector<std::unique_ptr<Expr>> expr;
 };
@@ -299,6 +393,16 @@ public:
     void accept(ASTVisitor &visitor) const
     {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor *visitor){
+        for(auto& param: params){
+            visitor->visitTypeExpr(*param);
+        }
+        visitor->visitHTTPResponseCode(returnType.first);
+        for(auto& te: returnType.second){
+            visitor->visitTypeExpr(*te);
+        }
     }
     std::string name;
     std::vector<std::unique_ptr<TypeExpr>> params;
@@ -316,6 +420,11 @@ public:
     {
         visitor.visit(*this);
     }
+
+    void accept(Visitor *visitor){
+        visitor->visitExpr(*expr);
+    }
+
     std::string varName;
     std::unique_ptr<Expr> expr;
 };
@@ -328,6 +437,11 @@ class Response{
     {
         visitor.visit(*this);
     }
+
+    void accept(Visitor *visitor){
+        visitor->visitHTTPResponse(code);
+        visitor->visitExpr(*expr);
+    }
 };
 class APIcall{
     public:
@@ -337,6 +451,12 @@ class APIcall{
     {
         visitor.visit(*this);
     }
+
+    void accept(Visitor *visitor) {
+        visitor.visitFuncCall(*call);
+        visitor.visitResponse(*response);
+    }
+
     APIcall(std::unique_ptr<FuncCall> call, Response response): call(std::move(call)), response(std::move(response)){};
 };
 // API
@@ -350,6 +470,12 @@ public:
     void accept(ASTVisitor &visitor) const
     {
         visitor.visit(*this);
+    }
+
+    void accept(Visitor *visitor) {
+        visitor->visitExpr(*pre);
+        visitor->visitAPIcall(*call);
+        visitor->visitResponse(*response);
     }
     std::unique_ptr<Expr> pre;
     std::unique_ptr<APIcall> call;
@@ -374,20 +500,19 @@ public:
 
     void accept(Visitor *visitor) {
         for(auto& global: globals) {
-            visitor.visitDecl(*global);
+            visitor->visitDecl(*global);
         }
 
         for(auto& i: init){
-            visitor.visitInit(*i);
+            visitor->visitInit(*i);
         }
 
         for(auto& function: functions){
-            visitor.visitFunDecl(*function);
+            visitor->visitFuncDecl(*function);
         }
 
         for(auto& block: blocks){
-            visitor.visitBlock(*block);
-            visitor.visitFunDecl(*block);
+            visitor->visitAPI(*block);
         }
     }
 
@@ -418,8 +543,8 @@ public:
     }
 
     void accept(Visitor *visitor){
-        visitor.visitVar(*left);
-        visitor.visitExpr(*right);
+        visitor->visitVar(*left);
+        visitor->visitExpr(*right);
     }
     std::unique_ptr<Var> left;
     std::unique_ptr<Expr> right;
@@ -462,4 +587,5 @@ public:
 
     std::vector<std::unique_ptr<Stmt>> statements;
 };
+
 #endif

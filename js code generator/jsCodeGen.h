@@ -16,6 +16,7 @@ protected:
     // virtual string string_of_type(Type) = 0;
 
 public:
+    virtual void visitHTTPResponseCode(HTTPResponseCode) = 0;
     virtual void visitDecl(Decl&) = 0;
     virtual void visitfunDecl(fundecl&) = 0;
     virtual void visitTypeExpr(TypeExpr&) = 0;
@@ -88,6 +89,7 @@ class ExpoSEVisitor : public Visitor {
 
     public:
         // virtual string string_of_type();
+        virtual void visitHTTPResponseCode(HTTPResponseCode);
         virtual void visitDecl(Decl&);
         virtual void visitfunDecl(fundecl&);
         virtual void visitTypeExpr(TypeExpr&);
@@ -115,6 +117,10 @@ class ExpoSEVisitor : public Visitor {
         virtual void visitFuncCallStmt(FuncCallStmt&);
         virtual void visitProgram(Program&);
 };
+
+
+
+
 
 class CCodeGenerator : public CodeGenerator {
 public:

@@ -52,6 +52,32 @@ string CodeGenerator::generateCode(Program& program) {
     return indentedCode;
 }
 
+
+void ExpoSEVisitor::visitExpr(Expr& e) {
+    switch(e.expressionType) {
+        // case EMPTY: visitEmpty((Empty&)e); break;
+        case VAR:   visitVar((Var&)e); break;
+        case NUM:   visitNum((Num&)e); break;
+        case FUNCTIONCALL: visitFuncCall((FuncCall&)e); break;
+        case MAP: visitMap((Map&)e); break;
+        case SET: visitSet((Set&)e); break;
+        case TUPLE: visitTuple((Tuple&)e); break;
+        default: throw "Visitor::visitExpression - Unknown expression type.";
+    }
+}
+
+void ExpoSEVisitor::visitTypeExpr(TypeExpr& t) {
+    switch(t.typeExpression) {
+        case TypeExpression::FUNC_TYPE: visitFuncType((FuncType&)t); break;
+        case TypeExpression::MAP_TYPE: visitMapType((MapType&)t); break;
+        case TypeExpression::SET_TYPE: visitSetType((SetType&)t); break;
+        case TypeExpression::TUPLE_TYPE: visitTupleType((TupleType&)t); break;
+        case TypeExpression::TYPE_CONST: visitTypeConst((TypeConst&)t); break;
+        case TypeExpression::TYPE_VARIABLE: visitVar((Var&)t); break;
+        // default: throw "Visitor::visitTypeExpr - Unknown type expression type.";
+    }
+}
+
 CodeGenerator::~CodeGenerator() {
     delete visitor;
 }
@@ -68,6 +94,32 @@ string Visitor::retrieve() {
 }
 
 
+void ExpoSEVisitor::visitVar(Var& v) {
+    v.accept(this);
+    strings.push(v.name);
+}
+
+void ExpoSEVisitor::visitNum(Num& n) {
+    n.accept(this);
+    strings.push(to_string(n.value));
+}
+
 void ExpoSEVisitor :: visitProgram(Program& program) {
     program.accept(this);
 }
+
+void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
+    f.accept(this);
+    strings.push(f.name);
+}
+
+void ExpoSEVisitor::visitMap(Map& m) {
+    m.accept(this);
+    // strings.push(m);
+}
+
+void ExpoSEVisitor::visitSet(Set& s) {
+    s.accept(this);
+    // strings.push(s.name);
+}
+
