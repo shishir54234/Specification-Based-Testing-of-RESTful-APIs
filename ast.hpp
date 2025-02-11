@@ -3,6 +3,7 @@
 #include <memory>
 #include <utility>
 #include "ASTVis.hpp"
+#include "js code generator/jsCodeGen.h"
 using namespace std;
 #ifndef AST_HPP
 #define AST_HPP
@@ -370,6 +371,26 @@ public:
     {
         visitor.visit(*this);
     }
+
+    void accept(Visitor *visitor) {
+        for(auto& global: globals) {
+            visitor.visitDecl(*global);
+        }
+
+        for(auto& i: init){
+            visitor.visitInit(*i);
+        }
+
+        for(auto& function: functions){
+            visitor.visitFunDecl(*function);
+        }
+
+        for(auto& block: blocks){
+            visitor.visitBlock(*block);
+            visitor.visitFunDecl(*block);
+        }
+    }
+
     std::vector<std::unique_ptr<Decl>> globals;
     // std::vector<std::unique_ptr<TypeDecl>> types;
     std::vector<unique_ptr<Init>> init;
@@ -395,6 +416,11 @@ public:
     {
         visitor.visit(*this);
     }
+
+    void accept(Visitor *visitor){
+        visitor.visitVar(*left);
+        visitor.visitExpr(*right);
+    }
     std::unique_ptr<Var> left;
     std::unique_ptr<Expr> right;
 };
@@ -409,6 +435,11 @@ public:
     {
         visitor.visit(*this);
     }
+
+    void accept(Visitor &visitor) {
+       visitor.visitFuncCall(*call);
+    }
+    
     std::unique_ptr<FuncCall> call;
 };
 
@@ -422,6 +453,13 @@ public:
     {
         visitor.visit(*this);
     }
+
+    void accept(Visitor *visitor) {
+        for (auto& stmt : statements) { // Use const reference to avoid unnecessary copies
+            visitor->visitStmt(*stmt);
+        }
+    }
+
     std::vector<std::unique_ptr<Stmt>> statements;
 };
 #endif

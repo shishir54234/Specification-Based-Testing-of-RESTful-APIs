@@ -68,3 +68,6 @@ string Visitor::retrieve() {
 }
 
 
+void ExpoSEVisitor :: visitProgram(Program& program) {
+    program.accept(this);
+}
