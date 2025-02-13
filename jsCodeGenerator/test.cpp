@@ -166,8 +166,8 @@ int main(){
     auto api = make_unique<API>(move(pre), move(call), Response(HTTPResponseCode::CREATED_201, make_unique<FuncCall>("=", move(post_args))));
     apis.push_back(move(api));
     auto spec = make_unique<Spec>(move(globals), move(inits), move(funcDecls), move(apis));
-    // PrintVisitor visitor;
-    // spec->accept(visitor);
+    PrintVisitor visitor;
+    spec->accept(visitor);
     SymbolTable symtable;
     symtable.symtable.insert(Var("U"));
     SymbolTable sym1;

@@ -21,7 +21,6 @@ string CodeGenerator::indent(string line, string istring, int level) {
 
 string CodeGenerator::generateCode(Program& program) {
     visitor->visitProgram(program);
-    // cout<<"visited program\n";
     string raw = visitor->retrieve();
     regex del("\n");
 
@@ -33,23 +32,10 @@ string CodeGenerator::generateCode(Program& program) {
         lines.push_back(*it);
         ++it;
     }
-	int level = 0;
-    for(auto& line : lines) {
-		if(line.find("{") != string::npos) {
-			line = indent(line, "    ", level);
-			level++;
-		}
-		else if(line.find("}") != string::npos) {
-			level--;
-			line = indent(line, "    ", level);
-		}
-		else {
-			line = indent(line, "    ", level);
-		}
-    }
+	
     string indentedCode = "";
-    for(auto& line : lines) {
-	    indentedCode += line + '\n';
+    for(int i=lines.size()-1;i>=0;i--) {
+	    indentedCode += lines[i] + '\n';
     }
     // cout<<"indented code: "<<indentedCode;
     return indentedCode;
@@ -203,6 +189,7 @@ void ExpoSEVisitor :: visitProgram(Program& program) {
     string resultantProgram;
     while(!strings.empty()) {
         resultantProgram += pop(strings);
+        resultantProgram += "\n";
     }
     strings.push(resultantProgram);
 }
@@ -213,8 +200,10 @@ void ExpoSEVisitor :: visitProgram(Program& program) {
 // }
 
 void ExpoSEVisitor::visitMap(Map& m) {
-    m.accept(this);
-    // strings.push(m);
+    cout<<"map\n";
+    // m.accept(this);
+    string map_decl = "new Map();";
+    strings.push(map_decl);
 }
 
 void ExpoSEVisitor::visitSet(Set& s) {
@@ -222,4 +211,11 @@ void ExpoSEVisitor::visitSet(Set& s) {
     // strings.push(s.name);
 }
 
+void ExpoSEVisitor::visitInit(Init& i) {
+    cout<<"init\n";
+    i.accept(this);
+    string varName = i.varName;
+    string expression = pop(strings);
+    strings.push("var " + varName + " = " + expression + ";");
+}
 

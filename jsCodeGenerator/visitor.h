@@ -65,7 +65,7 @@ class Visitor {
         virtual void visitMap(Map&) =0;
         // virtual void visitTuple(Tuple&);
         // virtual void visitFuncDecl(FuncDecl&);
-        // virtual void visitInit(Init&);
+        virtual void visitInit(Init&)=0;
         // virtual void visitResponse(Response&);
         // virtual void visitAPIcall(APIcall&);
     //    virtual void visitAPI(API&);
@@ -101,7 +101,7 @@ class ExpoSEVisitor : public Visitor {
         virtual void visitMap(Map&);
         // virtual void visitTuple(Tuple&);
         // virtual void visitFuncDecl(FuncDecl&);
-        // virtual void visitInit(Init&);
+        virtual void visitInit(Init&);
         // virtual void visitResponse(Response&);
         // virtual void visitAPIcall(APIcall&);
     //    virtual void visitAPI(API&);
