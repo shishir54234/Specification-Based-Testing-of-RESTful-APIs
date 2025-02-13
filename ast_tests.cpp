@@ -36,7 +36,7 @@ void testEverything(){
     pre_args.push_back(std::make_unique<Var>("username"));
     vector<unique_ptr<Expr>> h; h.push_back(std::make_unique<Var>("U"));
     pre_args.push_back(std::make_unique<FuncCall>("dom", move(h)));
-    cout<<"Hello\n";
+    // cout<<"Hello\n";
     auto pre=std::make_unique<FuncCall>("not in", move(pre_args));
 
     vector<unique_ptr<Expr>> call_args;

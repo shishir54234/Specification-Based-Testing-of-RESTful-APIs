@@ -167,6 +167,9 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         unique_ptr<FuncCallStmt> c2=make_unique<FuncCallStmt>(move(p2));
         program_stmts.push_back(std::move(c2));
         
+        unique_ptr<FuncCallStmt> c4=make_unique<FuncCallStmt>(move(call1));
+        program_stmts.push_back(move(c4));
+        
         vector<unique_ptr<Expr>> v2; v2.push_back(std::move(post1));
         unique_ptr<FuncCall> p3=make_unique<FuncCall>("assert", std::move(v2));
         unique_ptr<FuncCallStmt> c3=make_unique<FuncCallStmt>(move(p3));
