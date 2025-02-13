@@ -32,30 +32,62 @@ void testEverything(){
     funcDecls.push_back(std::move(login));
 
     vector<unique_ptr<API>> apis;
-    vector<unique_ptr<Expr>> pre_args;
-    pre_args.push_back(std::make_unique<Var>("username"));
-    vector<unique_ptr<Expr>> h; h.push_back(std::make_unique<Var>("U"));
-    pre_args.push_back(std::make_unique<FuncCall>("dom", move(h)));
-    // cout<<"Hello\n";
-    auto pre=std::make_unique<FuncCall>("not in", move(pre_args));
+    {
+        vector<unique_ptr<Expr>> pre_args;
+        pre_args.push_back(std::make_unique<Var>("username"));
+        vector<unique_ptr<Expr>> h;
+        h.push_back(std::make_unique<Var>("U"));
+        pre_args.push_back(std::make_unique<FuncCall>("dom", move(h)));
+        // cout<<"Hello\n";
+        auto pre = std::make_unique<FuncCall>("not in", move(pre_args));
 
-    vector<unique_ptr<Expr>> call_args;
-    vector<unique_ptr<Expr>> call_args1;
-    call_args1.push_back(std::make_unique<Var>("username"));
-    call_args1.push_back(std::make_unique<Var>("password"));
+        vector<unique_ptr<Expr>> call_args;
+        vector<unique_ptr<Expr>> call_args1;
+        call_args1.push_back(std::make_unique<Var>("username"));
+        call_args1.push_back(std::make_unique<Var>("password"));
 
-    auto call=std::make_unique<APIcall>(make_unique<FuncCall>("signup",move(call_args1)), Response(HTTPResponseCode::CREATED_201, nullptr));
-    vector<unique_ptr<Expr>> post_args;
-    vector<unique_ptr<Expr>> post_args1;
-    vector<unique_ptr<Expr>> e2; e2.push_back(std::make_unique<Var>("U"));
-    post_args1.push_back(std::make_unique<FuncCall>("'",move(e2)));
+        auto call = std::make_unique<APIcall>(make_unique<FuncCall>("signup", move(call_args1)), Response(HTTPResponseCode::CREATED_201, nullptr));
+        vector<unique_ptr<Expr>> post_args;
+        vector<unique_ptr<Expr>> post_args1;
+        vector<unique_ptr<Expr>> e2;
+        e2.push_back(std::make_unique<Var>("U"));
+        post_args1.push_back(std::make_unique<FuncCall>("'", move(e2)));
 
-    post_args1.push_back(std::make_unique<Var>("username"));
-    post_args.push_back(make_unique<FuncCall>("[]", move(post_args1)));
-    post_args.push_back(std::make_unique<Var>("password"));
+        post_args1.push_back(std::make_unique<Var>("username"));
+        post_args.push_back(make_unique<FuncCall>("[]", move(post_args1)));
+        post_args.push_back(std::make_unique<Var>("password"));
 
-    auto api = std::make_unique<API>(std::move(pre), std::move(call), Response(HTTPResponseCode::CREATED_201, make_unique<FuncCall>("=", move(post_args))));
-    apis.push_back(std::move(api));
+        auto api = std::make_unique<API>(std::move(pre), std::move(call), Response(HTTPResponseCode::CREATED_201, make_unique<FuncCall>("=", move(post_args))));
+        apis.push_back(std::move(api));
+    }
+    {
+        vector<unique_ptr<Expr>> pre_args;
+        pre_args.push_back(std::make_unique<Var>("username"));
+        vector<unique_ptr<Expr>> h;
+        h.push_back(std::make_unique<Var>("U"));
+        pre_args.push_back(std::make_unique<FuncCall>("dom", move(h)));
+        // cout<<"Hello\n";
+        auto pre = std::make_unique<FuncCall>("not in", move(pre_args));
+
+        vector<unique_ptr<Expr>> call_args;
+        vector<unique_ptr<Expr>> call_args1;
+        call_args1.push_back(std::make_unique<Var>("username"));
+        call_args1.push_back(std::make_unique<Var>("password"));
+
+        auto call = std::make_unique<APIcall>(make_unique<FuncCall>("signup", move(call_args1)), Response(HTTPResponseCode::CREATED_201, nullptr));
+        vector<unique_ptr<Expr>> post_args;
+        vector<unique_ptr<Expr>> post_args1;
+        vector<unique_ptr<Expr>> e2;
+        e2.push_back(std::make_unique<Var>("U"));
+        post_args1.push_back(std::make_unique<FuncCall>("'", move(e2)));
+
+        post_args1.push_back(std::make_unique<Var>("username"));
+        post_args.push_back(make_unique<FuncCall>("[]", move(post_args1)));
+        post_args.push_back(std::make_unique<Var>("password"));
+
+        auto api = std::make_unique<API>(std::move(pre), std::move(call), Response(HTTPResponseCode::CREATED_201, make_unique<FuncCall>("=", move(post_args))));
+        apis.push_back(std::move(api));
+    }
     auto spec = std::make_unique<Spec>(move(globals), move(inits), move(funcDecls), move(apis));
     PrintVisitor visitor;
     spec->accept(visitor);
