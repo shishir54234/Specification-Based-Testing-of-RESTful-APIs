@@ -160,7 +160,6 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         auto call1=convert1(reinterpret_cast<unique_ptr<Expr>&>(callexpr),currtable,to_string(i));
         auto post1=convert1(post,currtable,to_string(i));
         PrintVisitor p;
-        cout << program_stmts.size() << endl;
         vector<unique_ptr<Expr>> v1;v1.push_back(std::move(pre1));
         
         unique_ptr<FuncCall> p2 = make_unique<FuncCall>("assume", std::move(v1));
@@ -169,7 +168,7 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         
         unique_ptr<FuncCallStmt> c4=make_unique<FuncCallStmt>(move(call1));
         program_stmts.push_back(move(c4));
-        
+
         vector<unique_ptr<Expr>> v2; v2.push_back(std::move(post1));
         unique_ptr<FuncCall> p3=make_unique<FuncCall>("assert", std::move(v2));
         unique_ptr<FuncCallStmt> c3=make_unique<FuncCallStmt>(move(p3));
