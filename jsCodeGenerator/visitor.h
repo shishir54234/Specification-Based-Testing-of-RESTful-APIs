@@ -56,25 +56,25 @@ class Visitor {
         // virtual void visitMapType(MapType&);
         // virtual void visitTupleType(TupleType&);
         // virtual void visitSetType(SetType&);
-        virtual void visitExpr(Expr&);
+        virtual void visitExpr(Expr&) = 0;
         // virtual void visitPolymorphicFuncCall(PolymorphicFuncCall&);
-        virtual void visitVar(Var&);
-        virtual void visitFuncCall(FuncCall&);
-        virtual void visitNum(Num&);
-        virtual void visitSet(Set&);
-        virtual void visitMap(Map&);
-        virtual void visitTuple(Tuple&);
+        virtual void visitVar(Var&) = 0;
+        virtual void visitFuncCall(FuncCall&) = 0;
+        virtual void visitNum(Num&) =0 ;
+        virtual void visitSet(Set&) =0;
+        virtual void visitMap(Map&) =0;
+        // virtual void visitTuple(Tuple&);
         // virtual void visitFuncDecl(FuncDecl&);
         // virtual void visitInit(Init&);
         // virtual void visitResponse(Response&);
         // virtual void visitAPIcall(APIcall&);
     //    virtual void visitAPI(API&);
         // virtual void visitSpec(Spec&);
-        virtual void visitStmt(Stmt&);
-        virtual void visitAssign(Assign&);
-        virtual void visitFuncCallStmt(FuncCallStmt&);
-        virtual void visitProgram(Program&);
-    
+        virtual void visitStmt(Stmt&) =0;
+        virtual void visitAssign(Assign&) =0;
+        virtual void visitFuncCallStmt(FuncCallStmt&) =0;
+        virtual void visitProgram(Program&) =0;
+        virtual ~Visitor();
         string retrieve();
     };
     
@@ -86,7 +86,7 @@ class ExpoSEVisitor : public Visitor {
         // virtual void visitHTTPResponseCode(HTTPResponseCode);
         // virtual void visitDecl(Decl&);
         // virtual void visitfunDecl(fundecl&);
-        virtual void visitTypeExpr(TypeExpr&);
+        // virtual void visitTypeExpr(TypeExpr&);
         // virtual void visitTypeConst(TypeConst&);
         // virtual void visitFuncType(FuncType&);
         // virtual void visitMapType(MapType&);
@@ -99,7 +99,7 @@ class ExpoSEVisitor : public Visitor {
         virtual void visitNum(Num&);
         virtual void visitSet(Set&);
         virtual void visitMap(Map&);
-        virtual void visitTuple(Tuple&);
+        // virtual void visitTuple(Tuple&);
         // virtual void visitFuncDecl(FuncDecl&);
         // virtual void visitInit(Init&);
         // virtual void visitResponse(Response&);
@@ -110,6 +110,7 @@ class ExpoSEVisitor : public Visitor {
         virtual void visitAssign(Assign&);
         virtual void visitFuncCallStmt(FuncCallStmt&);
         virtual void visitProgram(Program&);
+        virtual ~ExpoSEVisitor();
 };
 
 

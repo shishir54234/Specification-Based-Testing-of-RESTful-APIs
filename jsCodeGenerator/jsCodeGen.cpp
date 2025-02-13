@@ -21,6 +21,7 @@ string CodeGenerator::indent(string line, string istring, int level) {
 
 string CodeGenerator::generateCode(Program& program) {
     visitor->visitProgram(program);
+    // cout<<"visited program\n";
     string raw = visitor->retrieve();
     regex del("\n");
 
@@ -28,6 +29,7 @@ string CodeGenerator::generateCode(Program& program) {
     sregex_token_iterator end;
     vector<string> lines;
     while (it != end) {
+        // cout<<"line: "<<*it<<endl;
         lines.push_back(*it);
         ++it;
     }
@@ -49,6 +51,7 @@ string CodeGenerator::generateCode(Program& program) {
     for(auto& line : lines) {
 	    indentedCode += line + '\n';
     }
+    // cout<<"indented code: "<<indentedCode;
     return indentedCode;
 }
 
@@ -61,7 +64,7 @@ void ExpoSEVisitor::visitExpr(Expr& e) {
         case FUNCTIONCALL_EXPR: visitFuncCall((FuncCall&)e); break;
         case MAP: visitMap((Map&)e); break;
         case SET: visitSet((Set&)e); break;
-        case TUPLE: visitTuple((Tuple&)e); break;
+        // case TUPLE: visitTuple((Tuple&)e); break;
         default: throw "Visitor::visitExpression - Unknown expression type.";
     }
 }
@@ -112,21 +115,34 @@ void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
     f.accept(this);
     string fcall = pop(strings);
     strings.push(fcall + ";");
-    // string name = pop(strings);
-    // string args = pop(strings);
-    // strings.push(name + "(" + args + ")");
 }
 
 
 void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
     f.accept(this);
     string name = f.name;
+
+    if(f.name == "assume"){
+        name = "S$.assume";
+    }
+
+    if(f.name == "assert"){
+        name = "S$.assert";
+    }
+
     string args = "";
     for(auto& arg : f.args) {
         string argstr = pop(strings);
         args += argstr + ",";
     }
     args.pop_back();
+
+    if(f.name == "print"){
+        name = "S$.symbol";
+        args += ",";
+        args += "\"\"";
+    }
+
     strings.push(name + "(" + args + ")");
 }
 CodeGenerator::~CodeGenerator() {
@@ -158,6 +174,7 @@ void ExpoSEVisitor::visitStmt(Stmt& s) {
         break;  
     }
 }
+// ExpoSEVisitor::~ExpoSEVisitor() {}
 
 void ExpoSEVisitor::visitAssign(Assign& a) {
     a.accept(this);
@@ -166,7 +183,9 @@ void ExpoSEVisitor::visitAssign(Assign& a) {
     strings.push("var " + v1 + " = " + exp1+ ";");
 }
 
+Visitor::~Visitor() {}
 
+ExpoSEVisitor::~ExpoSEVisitor() {}
 
 void ExpoSEVisitor::visitVar(Var& v) {
     v.accept(this);
@@ -181,6 +200,11 @@ void ExpoSEVisitor::visitNum(Num& n) {
 
 void ExpoSEVisitor :: visitProgram(Program& program) {
     program.accept(this);
+    string resultantProgram;
+    while(!strings.empty()) {
+        resultantProgram += pop(strings);
+    }
+    strings.push(resultantProgram);
 }
 
 // void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
@@ -197,3 +221,5 @@ void ExpoSEVisitor::visitSet(Set& s) {
     s.accept(this);
     // strings.push(s.name);
 }
+
+

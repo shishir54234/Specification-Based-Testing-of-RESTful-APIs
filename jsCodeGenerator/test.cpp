@@ -149,7 +149,7 @@ int main(){
     pre_args.push_back(make_unique<Var>("username"));
     vector<unique_ptr<Expr>> h; h.push_back(make_unique<Var>("U"));
     pre_args.push_back(make_unique<FuncCall>("dom", move(h)));
-    cout<<"Hello\n";
+    // cout<<"Hello\n";
     auto pre=make_unique<FuncCall>("not in", move(pre_args));
     vector<unique_ptr<Expr>> call_args;
     vector<unique_ptr<Expr>> call_args1;
