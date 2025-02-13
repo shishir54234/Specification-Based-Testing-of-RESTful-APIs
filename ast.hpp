@@ -3,10 +3,12 @@
 #include <memory>
 #include <utility>
 #include "ASTVis.hpp"
-#include "js code generator/jsCodeGen.h"
+#include "jsCodeGenerator/visitor.h"
+
 using namespace std;
 #ifndef AST_HPP
 #define AST_HPP
+
 enum class HTTPResponseCode
 {
     OK_200,
@@ -19,7 +21,8 @@ enum ExpressionType {
     NUM,
     TUPLE,
     SET,
-    FUNCTIONCALL
+    FUNCTIONCALL_EXPR,
+    POLYMORPHIC_FUNCTIONCALL_EXPR
 };
 
 enum TypeExpression{
@@ -34,14 +37,9 @@ enum TypeExpression{
 
 enum StatementType{
     ASSIGN,
-    FUNCTIONCALL,
+    FUNCTIONCALL_STMT,
 };
-// Forward declarations
-// class TypeExpr;
-// class Expr;
-// class FuncCall;
 
-// Base classes for different types of declarations
 class Decl
 {
 public:
@@ -73,23 +71,16 @@ public:
     virtual ~TypeExpr() = default;
     virtual void accept(ASTVisitor &visitor) const = 0;
     TypeExpression typeExpression;
+protected:
+    TypeExpr(TypeExpression typeExpr): typeExpression(typeExpr) {}
 };
 
-// class VariantConstructor
-// {
-// public:
-//     void accept(ASTVisitor &visitor) const
-//     {
-//         visitor.visit(*this);
-//     }
-//     // Add necessary fields
-// };
 
 // Type Expressions
 class TypeConst : public TypeExpr
 {
 public:
-    explicit TypeConst(std::string name) : name(std::move(name)), typeExpression (TypeExpression::TYPE_CONST) {}
+    explicit TypeConst(std::string name) : TypeExpr(TypeExpression::TYPE_CONST), name(std::move(name)) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -99,57 +90,12 @@ public:
     std::string name;
 };
 
-// class TypeVariable : public TypeExpr
-// {
-// public:
-//     // Constructor for a basic type variable with just a name
-//     explicit TypeVariable(std::string name)
-//         : name(std::move(name)),
-//           constraint(nullptr) {}
-
-//     // Constructor for a type variable with a constraint
-//     TypeVariable(std::string name, std::unique_ptr<TypeExpr> constraint)
-//         : name(std::move(name)),
-//           constraint(std::move(constraint)) {}
-
-//     // Copy constructor (needed for type variable management)
-//     TypeVariable(const TypeVariable &other)
-//         : name(other.name),
-//           constraint(other.constraint ? other.constraint->clone() : nullptr) {}
-
-//     // Clone method for polymorphic copying
-//     virtual std::unique_ptr<TypeExpr> clone() const override
-//     {
-//         return std::make_unique<TypeVariable>(*this);
-//     }
-
-//     // Check if this type variable has a constraint
-//     bool hasConstraint() const
-//     {
-//         return constraint != nullptr;
-//     }
-
-//     // Getter for the constraint (if any)
-//     const TypeExpr *getConstraint() const
-//     {
-//         return constraint.get();
-//     }
-
-//     // Optional: Add a constraint after construction
-//     void addConstraint(std::unique_ptr<TypeExpr> newConstraint)
-//     {
-//         constraint = std::move(newConstraint);
-//     }
-
-//     std::string name;
-//     std::unique_ptr<TypeExpr> constraint; // Optional constraint on the type variable
-// };
 
 class FuncType : public TypeExpr
 {
 public:
     FuncType(std::vector<std::unique_ptr<TypeExpr>> params, std::unique_ptr<TypeExpr> returnType)
-        : params(std::move(params)), returnType(std::move(returnType)), typeExpression (TypeExpression::FUNC_TYPE) {}
+        : TypeExpr(TypeExpression::FUNC_TYPE), params(std::move(params)), returnType(std::move(returnType)) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -168,7 +114,7 @@ class MapType : public TypeExpr
 {
 public:
     MapType(std::unique_ptr<TypeExpr> domain, std::unique_ptr<TypeExpr> range)
-        : domain(std::move(domain)), range(std::move(range)), typeExpression (TypeExpression::MAP_TYPE) {}
+        : TypeExpr(TypeExpression::MAP_TYPE), domain(std::move(domain)), range(std::move(range)){}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -186,7 +132,7 @@ class TupleType : public TypeExpr
 {
 public:
     explicit TupleType(std::vector<std::unique_ptr<TypeExpr>> elements)
-        : elements(std::move(elements)), typeExpression (TypeExpression::TUPLE_TYPE) {}
+        : TypeExpr(TypeExpression::TUPLE_TYPE), elements(std::move(elements)) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -203,7 +149,7 @@ class SetType : public TypeExpr
 {
 public:
     explicit SetType(std::unique_ptr<TypeExpr> elementType)
-        : elementType(std::move(elementType)), typeExpression (TypeExpression::SET_TYPE) {}
+        : TypeExpr(TypeExpression::SET_TYPE), elementType(std::move(elementType)) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -214,41 +160,6 @@ public:
     std::unique_ptr<TypeExpr> elementType;
 };
 
-// Type Declarations
-// class TypeDecl
-// {
-// public:
-//     virtual ~TypeDecl() = default;
-//     virtual void accept(ASTVisitor &visitor) const
-//     {
-//         visitor.visit(*this);
-//     }
-// };
-
-// class VariantDecl : public TypeDecl
-// {
-// public:
-//     std::vector<VariantConstructor> constructors;
-//     void accept(ASTVisitor &visitor) const override
-//     {
-//         visitor.visit(*this);
-//     }
-// };
-
-// class RecordDecl : public TypeDecl
-// {
-// public:
-//     RecordDecl(std::string name, std::vector<std::unique_ptr<Decl>> fields)
-//         : recname(std::move(name)), fields(std::move(fields)) {}
-
-//     std::string recname;
-//     std::vector<std::unique_ptr<Decl>> fields;
-//     void accept(ASTVisitor &visitor) const override
-//     {
-//         visitor.visit(*this);
-//     }
-// };
-
 // Expressions
 class Expr
 {
@@ -256,6 +167,8 @@ public:
     virtual ~Expr() = default;
     virtual void accept(ASTVisitor& visitor) const = 0;
     ExpressionType expressionType;
+protected:
+    Expr(ExpressionType exprType): expressionType(exprType) {}
 
 };
 class PolymorphicFuncCall : public Expr
@@ -265,7 +178,7 @@ public:
     PolymorphicFuncCall(
         std::string name,
         std::vector<std::unique_ptr<TypeExpr>> typeArgs,
-        std::vector<std::unique_ptr<Expr>> args) : name(std::move(name)),
+        std::vector<std::unique_ptr<Expr>> args) : Expr(ExpressionType::POLYMORPHIC_FUNCTIONCALL_EXPR), name(std::move(name)),
                                                    typeArgs(std::move(typeArgs)),
                                                    args(std::move(args)) {}
 
@@ -290,7 +203,7 @@ public:
 class Var : public Expr
 {
 public:
-    explicit Var(std::string name) : name(std::move(name)) , expressionType(ExpressionType::VAR){}
+    explicit Var(std::string name) : Expr(ExpressionType::VAR),name(std::move(name)){}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -309,14 +222,14 @@ class FuncCall : public Expr
 {
 public:
     FuncCall(std::string name, std::vector<std::unique_ptr<Expr>> args)
-        : name(std::move(name)), args(std::move(args)) , expressionType(ExpressionType::FUNCTIONCALL) {}
+        : Expr(ExpressionType::FUNCTIONCALL_EXPR),name(std::move(name)), args(std::move(args)){}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
 
     void accept(Visitor* visitor){
         for(auto& arg: args){
-            visitor->visitFuncCall(*arg);
+            visitor->visitExpr(*arg);
         }
     }
     std::string name;
@@ -326,7 +239,7 @@ public:
 class Num : public Expr
 {
 public:
-    explicit Num(int value) : value(value), expressionType(ExpressionType::NUM) {}
+    explicit Num(int value) : Expr(ExpressionType::NUM),value(value) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -342,7 +255,7 @@ class Set : public Expr
 {
 public:
     explicit Set(std::vector<std::unique_ptr<Expr>> elements)
-        : elements(std::move(elements)) , expressionType(ExpressionType::SET) {}
+        : Expr(ExpressionType::SET),elements(std::move(elements)) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -358,7 +271,7 @@ public:
 class Map : public Expr
 {
 public:
-    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : value(std::move(value)) , expressionType(ExpressionType::MAP){}
+    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : Expr(ExpressionType::MAP),value(std::move(value)){}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -375,7 +288,7 @@ public:
 class Tuple : public Expr
 {
 public:
-    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : expr(std::move(expr)),expressionType (ExpressionType::TUPLE) {}
+    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : Expr(ExpressionType::TUPLE),expr(std::move(expr)) {}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -445,7 +358,7 @@ class Response{
     }
 
     void accept(Visitor *visitor){
-        visitor->visitHTTPResponse(code);
+        visitor->visitHTTPResponseCode(code);
         visitor->visitExpr(*expr);
     }
 };
@@ -459,8 +372,8 @@ class APIcall{
     }
 
     void accept(Visitor *visitor) {
-        visitor.visitFuncCall(*call);
-        visitor.visitResponse(*response);
+        visitor->visitFuncCall(*call);
+        visitor->visitResponse(response);
     }
 
     APIcall(std::unique_ptr<FuncCall> call, Response response): call(std::move(call)), response(std::move(response)){};
@@ -481,7 +394,7 @@ public:
     void accept(Visitor *visitor) {
         visitor->visitExpr(*pre);
         visitor->visitAPIcall(*call);
-        visitor->visitResponse(*response);
+        visitor->visitResponse(response);
     }
     std::unique_ptr<Expr> pre;
     std::unique_ptr<APIcall> call;
@@ -536,6 +449,8 @@ public:
     virtual ~Stmt() = default;
     virtual void accept(ASTVisitor &visitor) const = 0;
     StatementType statementType;
+protected:
+    Stmt(StatementType type) : statementType(type) {}
 };
 
 // Assignment statement: l = r
@@ -543,7 +458,7 @@ class Assign : public Stmt
 {
 public:
     Assign(std::unique_ptr<Var> left, std::unique_ptr<Expr> right)
-        : left(std::move(left)), right(std::move(right)), statementType (StatementType::ASSIGN) {}
+        : Stmt(StatementType::ASSIGN), left(std::move(left)), right(std::move(right)) {}
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -562,7 +477,7 @@ class FuncCallStmt : public Stmt
 {
 public:
     explicit FuncCallStmt(std::unique_ptr<FuncCall> call)
-        : call(std::move(call)), statementType(StatementType::FUNCTIONCALL) {}
+        : Stmt(StatementType::FUNCTIONCALL_STMT),call(std::move(call)) {}
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -596,3 +511,103 @@ public:
 };
 
 #endif
+
+// Forward declarations
+// class TypeExpr;
+// class Expr;
+// class FuncCall;
+
+// Base classes for different types of declarations
+
+
+// class TypeVariable : public TypeExpr
+// {
+// public:
+//     // Constructor for a basic type variable with just a name
+//     explicit TypeVariable(std::string name)
+//         : name(std::move(name)),
+//           constraint(nullptr) {}
+
+//     // Constructor for a type variable with a constraint
+//     TypeVariable(std::string name, std::unique_ptr<TypeExpr> constraint)
+//         : name(std::move(name)),
+//           constraint(std::move(constraint)) {}
+
+//     // Copy constructor (needed for type variable management)
+//     TypeVariable(const TypeVariable &other)
+//         : name(other.name),
+//           constraint(other.constraint ? other.constraint->clone() : nullptr) {}
+
+//     // Clone method for polymorphic copying
+//     virtual std::unique_ptr<TypeExpr> clone() const override
+//     {
+//         return std::make_unique<TypeVariable>(*this);
+//     }
+
+//     // Check if this type variable has a constraint
+//     bool hasConstraint() const
+//     {
+//         return constraint != nullptr;
+//     }
+
+//     // Getter for the constraint (if any)
+//     const TypeExpr *getConstraint() const
+//     {
+//         return constraint.get();
+//     }
+
+//     // Optional: Add a constraint after construction
+//     void addConstraint(std::unique_ptr<TypeExpr> newConstraint)
+//     {
+//         constraint = std::move(newConstraint);
+//     }
+
+//     std::string name;
+//     std::unique_ptr<TypeExpr> constraint; // Optional constraint on the type variable
+// };
+
+// class VariantConstructor
+// {
+// public:
+//     void accept(ASTVisitor &visitor) const
+//     {
+//         visitor.visit(*this);
+//     }
+//     // Add necessary fields
+// };
+
+
+// Type Declarations
+// class TypeDecl
+// {
+// public:
+//     virtual ~TypeDecl() = default;
+//     virtual void accept(ASTVisitor &visitor) const
+//     {
+//         visitor.visit(*this);
+//     }
+// };
+
+// class VariantDecl : public TypeDecl
+// {
+// public:
+//     std::vector<VariantConstructor> constructors;
+//     void accept(ASTVisitor &visitor) const override
+//     {
+//         visitor.visit(*this);
+//     }
+// };
+
+// class RecordDecl : public TypeDecl
+// {
+// public:
+//     RecordDecl(std::string name, std::vector<std::unique_ptr<Decl>> fields)
+//         : recname(std::move(name)), fields(std::move(fields)) {}
+
+//     std::string recname;
+//     std::vector<std::unique_ptr<Decl>> fields;
+//     void accept(ASTVisitor &visitor) const override
+//     {
+//         visitor.visit(*this);
+//     }
+// };
