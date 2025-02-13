@@ -66,49 +66,52 @@ void ExpoSEVisitor::visitExpr(Expr& e) {
     }
 }
 
-void ExpoSEVisitor::visitTypeExpr(TypeExpr& t) {
-    switch(t.typeExpression) {
-        case TypeExpression::FUNC_TYPE: visitFuncType((FuncType&)t); break;
-        case TypeExpression::MAP_TYPE: visitMapType((MapType&)t); break;
-        case TypeExpression::SET_TYPE: visitSetType((SetType&)t); break;
-        case TypeExpression::TUPLE_TYPE: visitTupleType((TupleType&)t); break;
-        case TypeExpression::TYPE_CONST: visitTypeConst((TypeConst&)t); break;
-        case TypeExpression::TYPE_VARIABLE: visitVar((Var&)t); break;
-        // default: throw "Visitor::visitTypeExpr - Unknown type expression type.";
-    }
-}
+// void ExpoSEVisitor::visitTypeExpr(TypeExpr& t) {
+//     switch(t.typeExpression) {
+//         case TypeExpression::FUNC_TYPE: visitFuncType((FuncType&)t); break;
+//         case TypeExpression::MAP_TYPE: visitMapType((MapType&)t); break;
+//         case TypeExpression::SET_TYPE: visitSetType((SetType&)t); break;
+//         case TypeExpression::TUPLE_TYPE: visitTupleType((TupleType&)t); break;
+//         case TypeExpression::TYPE_CONST: visitTypeConst((TypeConst&)t); break;
+//         case TypeExpression::TYPE_VARIABLE: visitVar((Var&)t); break;
+//         // default: throw "Visitor::visitTypeExpr - Unknown type expression type.";
+//     }
+// }
 
+// void ExpoSEVisitor::
 
-void ExpoSEVisitor::visitDecl(Decl& d) {
-    d.accept(this);
-    string name = d.name;
-    string type = pop(strings);
-    strings.push(type + " " + name);
-}
+// void ExpoSEVisitor::visitDecl(Decl& d) {
+//     d.accept(this);
+//     string name = d.name;
+//     string type = pop(strings);
+//     strings.push(type + " " + name);
+// }
 
-void ExpoSEVisitor::visitFuncDecl(FuncDecl& f) {
-    f.accept(this);
-    string name = f.name;
-    // string type = pop(strings);
-    string params = "";
-    int counter =0;
-    while(f.params.size()==counter)
-    {
-        string param = pop(strings);
-        params += param + ",";
-        counter++;
-    }
-    counter =0;
-    while(f.returnType.second.size()==counter)
-    {
-        string param = pop(strings);
-    }
-    // string args = pop(strings);
-    // strings.push(type + " " + name);
-}
+// void ExpoSEVisitor::visitFuncDecl(FuncDecl& f) {
+//     f.accept(this);
+//     string name = f.name;
+//     // string type = pop(strings);
+//     string params = "";
+//     int counter =0;
+//     while(f.params.size()==counter)
+//     {
+//         string param = pop(strings);
+//         params += param + ",";
+//         counter++;
+//     }
+//     counter =0;
+//     while(f.returnType.second.size()==counter)
+//     {
+//         string param = pop(strings);
+//     }
+//     // string args = pop(strings);
+//     // strings.push(type + " " + name);
+// }
 
 void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
     f.accept(this);
+    string fcall = pop(strings);
+    strings.push(fcall + ";");
     // string name = pop(strings);
     // string args = pop(strings);
     // strings.push(name + "(" + args + ")");
@@ -125,7 +128,6 @@ void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
     }
     args.pop_back();
     strings.push(name + "(" + args + ")");
-
 }
 CodeGenerator::~CodeGenerator() {
     delete visitor;
@@ -161,13 +163,14 @@ void ExpoSEVisitor::visitAssign(Assign& a) {
     a.accept(this);
     string v1 = pop(strings);
     string exp1 = pop(strings);
-    strings.push(v1 + " = " + exp1);
+    strings.push("var " + v1 + " = " + exp1+ ";");
 }
 
 
 
 void ExpoSEVisitor::visitVar(Var& v) {
     v.accept(this);
+    string a = v.name;
     strings.push(v.name);
 }
 
@@ -193,8 +196,4 @@ void ExpoSEVisitor::visitMap(Map& m) {
 void ExpoSEVisitor::visitSet(Set& s) {
     s.accept(this);
     // strings.push(s.name);
-}
-
-int main(){
-    return 0;
 }

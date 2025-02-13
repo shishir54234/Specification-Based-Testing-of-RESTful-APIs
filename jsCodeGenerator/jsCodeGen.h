@@ -23,9 +23,9 @@ class CodeGenerator {
         virtual ~CodeGenerator();
     };
 
-class CCodeGenerator : public CodeGenerator {
+class ExpoSECodeGenerator : public CodeGenerator {
 public:
-    CCodeGenerator() : CodeGenerator(new ExpoSEVisitor()) {}
+    ExpoSECodeGenerator() : CodeGenerator(new ExpoSEVisitor()) {}
 };
 
 // } // namespace codegen

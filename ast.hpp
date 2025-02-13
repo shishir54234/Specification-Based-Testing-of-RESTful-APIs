@@ -52,7 +52,7 @@ public:
     }
 
     void accept(Visitor* visitor){
-        visitor->visitTypeExpr(*type);
+        // visitor->visitTypeExpr(*type);
     }
     
     std::string name;
@@ -102,9 +102,9 @@ public:
 
     void accept(Visitor* visitor){
         for(auto& param: params){
-            visitor->visitTypeExpr(*param);
+            // visitor->visitTypeExpr(*param);
         }
-        visitor->visitTypeExpr(*returnType);
+        // visitor->visitTypeExpr(*returnType);
     }
     std::vector<std::unique_ptr<TypeExpr>> params;
     std::unique_ptr<TypeExpr> returnType;
@@ -120,8 +120,8 @@ public:
     }
 
     void accept(Visitor* visitor){
-        visitor->visitTypeExpr(*domain);
-        visitor->visitTypeExpr(*range);
+        // visitor->visitTypeExpr(*domain);
+        // visitor->visitTypeExpr(*range);
     }
 
     std::unique_ptr<TypeExpr> domain;
@@ -139,7 +139,7 @@ public:
 
     void accept(Visitor* visitor){
         for(auto& e: elements){
-            visitor->visitTypeExpr(*e);
+            // visitor->visitTypeExpr(*e);
         }
     }
     std::vector<std::unique_ptr<TypeExpr>> elements;
@@ -155,7 +155,7 @@ public:
     }
 
     void accept(Visitor* visitor){
-        visitor->visitTypeExpr(*elementType);
+        // visitor->visitTypeExpr(*elementType);
     }
     std::unique_ptr<TypeExpr> elementType;
 };
@@ -192,7 +192,7 @@ public:
 
     void accept(Visitor* visitor){
         for(auto& typeArg: typeArgs){
-            visitor->visitTypeExpr(*typeArg);
+            // visitor->visitTypeExpr(*typeArg);
         }
 
         for(auto& arg: args){
@@ -315,13 +315,13 @@ public:
     }
 
     void accept(Visitor *visitor){
-        for(auto& param: params){
-            visitor->visitTypeExpr(*param);
-        }
-        visitor->visitHTTPResponseCode(returnType.first);
-        for(auto& te: returnType.second){
-            visitor->visitTypeExpr(*te);
-        }
+        // for(auto& param: params){
+        //     visitor->visitTypeExpr(*param);
+        // }
+        // visitor->visitHTTPResponseCode(returnType.first);
+        // for(auto& te: returnType.second){
+        //     visitor->visitTypeExpr(*te);
+        // }
     }
     std::string name;
     std::vector<std::unique_ptr<TypeExpr>> params;
@@ -358,7 +358,7 @@ class Response{
     }
 
     void accept(Visitor *visitor){
-        visitor->visitHTTPResponseCode(code);
+        // visitor->visitHTTPResponseCode(code);
         visitor->visitExpr(*expr);
     }
 };
@@ -373,7 +373,7 @@ class APIcall{
 
     void accept(Visitor *visitor) {
         visitor->visitFuncCall(*call);
-        visitor->visitResponse(response);
+        // visitor->visitResponse(response);
     }
 
     APIcall(std::unique_ptr<FuncCall> call, Response response): call(std::move(call)), response(std::move(response)){};
@@ -393,8 +393,8 @@ public:
 
     void accept(Visitor *visitor) {
         visitor->visitExpr(*pre);
-        visitor->visitAPIcall(*call);
-        visitor->visitResponse(response);
+        // visitor->visitAPIcall(*call);
+        // visitor->visitResponse(response);
     }
     std::unique_ptr<Expr> pre;
     std::unique_ptr<APIcall> call;
@@ -418,21 +418,21 @@ public:
     }
 
     void accept(Visitor *visitor) {
-        for(auto& global: globals) {
-            visitor->visitDecl(*global);
-        }
+        // for(auto& global: globals) {
+        //     visitor->visitDecl(*global);
+        // }
 
-        for(auto& i: init){
-            visitor->visitInit(*i);
-        }
+        // for(auto& i: init){
+        //     visitor->visitInit(*i);
+        // }
 
-        for(auto& function: functions){
-            visitor->visitFuncDecl(*function);
-        }
+        // for(auto& function: functions){
+        //     visitor->visitFuncDecl(*function);
+        // }
 
-        for(auto& block: blocks){
-            visitor->visitAPI(*block);
-        }
+        // for(auto& block: blocks){
+        //     visitor->visitAPI(*block);
+        // }
     }
 
     std::vector<std::unique_ptr<Decl>> globals;
