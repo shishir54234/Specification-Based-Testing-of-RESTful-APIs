@@ -30,6 +30,12 @@ enum TypeExpression{
     SET_TYPE,
     TUPLE_TYPE
 };
+
+
+enum StatementType{
+    ASSIGN,
+    FUNCTIONCALL,
+};
 // Forward declarations
 // class TypeExpr;
 // class Expr;
@@ -529,6 +535,7 @@ class Stmt
 public:
     virtual ~Stmt() = default;
     virtual void accept(ASTVisitor &visitor) const = 0;
+    StatementType statementType;
 };
 
 // Assignment statement: l = r
@@ -536,7 +543,7 @@ class Assign : public Stmt
 {
 public:
     Assign(std::unique_ptr<Var> left, std::unique_ptr<Expr> right)
-        : left(std::move(left)), right(std::move(right)) {}
+        : left(std::move(left)), right(std::move(right)), statementType (StatementType::ASSIGN) {}
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -555,14 +562,14 @@ class FuncCallStmt : public Stmt
 {
 public:
     explicit FuncCallStmt(std::unique_ptr<FuncCall> call)
-        : call(std::move(call)) {}
+        : call(std::move(call)), statementType(StatementType::FUNCTIONCALL) {}
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
     }
 
-    void accept(Visitor &visitor) {
-       visitor.visitFuncCall(*call);
+    void accept(Visitor *visitor) {
+       visitor->visitFuncCall(*call);
     }
     
     std::unique_ptr<FuncCall> call;

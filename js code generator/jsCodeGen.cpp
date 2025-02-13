@@ -78,6 +78,55 @@ void ExpoSEVisitor::visitTypeExpr(TypeExpr& t) {
     }
 }
 
+
+void ExpoSEVisitor::visitDecl(Decl& d) {
+    d.accept(this);
+    string name = d.name;
+    string type = pop(strings);
+    strings.push(type + " " + name);
+}
+
+// void ExpoSEVisitor::visitFuncDecl(FuncDecl& f) {
+//     f.accept(this);
+//     string name = f.name;
+//     // string type = pop(strings);
+//     string params = "";
+//     int counter =0;
+//     while(f.params.size()==counter)
+//     {
+//         string param = pop(strings);
+//         params += param + ",";
+//         counter++;
+//     }
+//     counter =0;
+//     while(f.returnType.second.size()==counter)
+//     {
+//         string param = pop(strings);
+//     }
+//     // string args = pop(strings);
+//     strings.push(type + " " + name);
+// }
+
+void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
+    f.accept(this);
+    // string name = pop(strings);
+    // string args = pop(strings);
+    // strings.push(name + "(" + args + ")");
+}
+
+
+void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
+    f.accept(this);
+    string name = f.name;
+    string args = "";
+    for(auto& arg : f.args) {
+        string argstr = pop(strings);
+        args += argstr + ",";
+    }
+    args.pop_back();
+    strings.push(name + "(" + args + ")");
+
+}
 CodeGenerator::~CodeGenerator() {
     delete visitor;
 }
@@ -92,6 +141,32 @@ string Visitor::pop(stack<string>& s) {
 string Visitor::retrieve() {
     return pop(strings);
 }
+
+
+void ExpoSEVisitor::visitStmt(Stmt& s) {
+    switch (s.statementType)
+    {
+    case StatementType::ASSIGN:
+        visitAssign((Assign&)s);
+        break;
+    case StatementType::FUNCTIONCALL:
+        visitFuncCallStmt((FuncCallStmt&)s);
+        break;
+    default:
+        break;  
+    }
+}
+
+void ExpoSEVisitor::visitAssign(Assign& a) {
+    a.accept(this);
+    // Var v1 = *(a.left);
+    // Expr exp1 = *(a.right);
+    // strings.push(v1.name + " = " + exp1.expressionType);
+    string v1 = pop(strings);
+    string exp1 = pop(strings);
+    strings.push(v1 + " = " + exp1);
+}
+
 
 
 void ExpoSEVisitor::visitVar(Var& v) {
