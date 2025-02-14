@@ -130,11 +130,27 @@ void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
     }
 
     if(f.name == "="){
-        string equalCheck = pop(strings) + " == " + pop(strings);
+        string equalCheck = arguments[0] + " == " + arguments[1];
         strings.push(equalCheck);
         return;
     }
 
+    if(f.name == "not in"){
+        string notIn  = "!(" + arguments[0] + ".has(" + arguments[1] + "))";
+        strings.push(notIn);
+        return;
+    }
+
+    if  (f.name == "[]"){
+        string access = arguments[1] + "[" + arguments[0] + "]";
+        strings.push(access);
+        return;
+    }
+
+    if(f.name == "dom"){
+        strings.push(arguments[0]);
+        return;
+    }
 
     if(f.name == "input"){
         string assign = "var " + args + " = ";
