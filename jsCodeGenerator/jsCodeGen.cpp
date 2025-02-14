@@ -22,8 +22,9 @@ string CodeGenerator::indent(string line, string istring, int level) {
 string CodeGenerator::generateCode(Program& program) {
     visitor->visitProgram(program);
     string raw = visitor->retrieve();
+    cout<<"This is raw string"<<endl;
+    cout<<raw<<endl;
     regex del("\n");
-
     sregex_token_iterator it(raw.begin(), raw.end(), del, -1);
     sregex_token_iterator end;
     vector<string> lines;
@@ -107,7 +108,7 @@ void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
 void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
     f.accept(this);
     string name = f.name;
-
+    cout<<"Function Name"<<f.name<<endl;
     if(f.name == "assume"){
         name = "S$.assume";
     }
@@ -176,6 +177,7 @@ ExpoSEVisitor::~ExpoSEVisitor() {}
 void ExpoSEVisitor::visitVar(Var& v) {
     v.accept(this);
     string a = v.name;
+    // cout<<"Yo this is name:"<<a<<endl;
     strings.push(v.name);
 }
 
