@@ -140,6 +140,7 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
 }
 Program convert(const Spec *apispec, SymbolTable symtable){
     vector<unique_ptr<Stmt>> program_stmts;
+    cout<<apispec->blocks.size()<<endl;
     for(int i=0;i<apispec->blocks.size();i++){
         auto currtable=symtable.children[i];
         auto currblock = std::move(const_cast<std::unique_ptr<API>&>(apispec->blocks[i]));
@@ -166,7 +167,9 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         unique_ptr<FuncCallStmt> c2=make_unique<FuncCallStmt>(move(p2));
         program_stmts.push_back(std::move(c2));
         
-        unique_ptr<FuncCallStmt> c4=make_unique<FuncCallStmt>(move(call1));
+        auto call2 = std::move(call1);
+        unique_ptr<FuncCallStmt> c4 = make_unique<FuncCallStmt>(
+            unique_ptr<FuncCall>(static_cast<FuncCall *>(call2.release())));
         program_stmts.push_back(move(c4));
 
         vector<unique_ptr<Expr>> v2; v2.push_back(std::move(post1));
@@ -177,8 +180,9 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         // currblock->pre=std::move(pre1);
         // currblock->call=std::move(call1);
         // currblock->response=std::move({response1,response.second});
-
+        cout<<program_stmts.size()<<"\n";
     }
+    
     return Program(std::move(program_stmts));
 }
 

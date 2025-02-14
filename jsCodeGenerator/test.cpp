@@ -204,6 +204,7 @@ int main(){
         auto api = std::make_unique<API>(std::move(pre), std::move(call), Response(HTTPResponseCode::CREATED_201, make_unique<FuncCall>("=", move(post_args))));
         apis.push_back(std::move(api));
     }
+    cout<<apis.size()<<"\n";
     auto spec = make_unique<Spec>(move(globals), move(inits), move(funcDecls), move(apis));
     PrintVisitor visitor;
     spec->accept(visitor);
@@ -213,11 +214,16 @@ int main(){
     sym1.symtable.insert(Var("username"));
     sym1.symtable.insert(Var("password"));
     symtable.children.push_back(&sym1);
+    SymbolTable sym2;
+    sym2.symtable.insert(Var("username"));
+    sym2.symtable.insert(Var("password"));
+    symtable.children.push_back(&sym2);
     Program p = convert(spec.get(), symtable);
     // vector<unique_ptr<Stmt>> stmts;
     // for(auto &stmt:p.statements){
     //     stmts.push_back(move(stmt));
     // }
+    p.accept(visitor);
     ExpoSECodeGenerator ecg;
     string code = ecg.generateCode(p);
     cout << code;

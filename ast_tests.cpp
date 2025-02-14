@@ -32,7 +32,7 @@ void testEverything(){
     funcDecls.push_back(std::move(login));
 
     vector<unique_ptr<API>> apis;
-    {
+    if(1){
         vector<unique_ptr<Expr>> pre_args;
         pre_args.push_back(std::make_unique<Var>("username"));
         vector<unique_ptr<Expr>> h;
@@ -60,7 +60,7 @@ void testEverything(){
         auto api = std::make_unique<API>(std::move(pre), std::move(call), Response(HTTPResponseCode::CREATED_201, make_unique<FuncCall>("=", move(post_args))));
         apis.push_back(std::move(api));
     }
-    {
+    if(1){
         vector<unique_ptr<Expr>> pre_args;
         pre_args.push_back(std::make_unique<Var>("username"));
         vector<unique_ptr<Expr>> h;
