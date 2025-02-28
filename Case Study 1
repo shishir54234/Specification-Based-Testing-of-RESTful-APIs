@@ -1,0 +1,127 @@
+**API Specifications for Library Management System**
+
+---
+
+### 1. Register Admin
+--------------------------------REGISTER_ADMIN_OK--------------------------------
+PRECONDITION: U[username] = NIL
+register_admin(username : string, password : string) ==> (OK)
+POSTCONDITION: U' = U[username -> password]
+-----------------------------------------------------------------------------
+
+---
+
+### 2. Register Student
+--------------------------------REGISTER_STUDENT_OK--------------------------------
+PRECONDITION: S[email] = NIL
+register_student(name : string, email : string, password : string) ==> (OK)
+POSTCONDITION: S' = S[email -> {name, password}]
+-----------------------------------------------------------------------------
+
+---
+
+### 3. Authenticate User
+--------------------------------LOGIN_OK------------------------------------
+PRECONDITION: U[username] = password
+authenticate(username : string, password : string) ==> (OK, token)
+POSTCONDITION: T' = T[token -> username]
+-----------------------------------------------------------------------------
+
+---
+
+### 4. Get All Students
+--------------------------------GETALLSTUDENTS_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+getAllStudents(t : Token) ==> (OK, studentList: List[Student])
+POSTCONDITION: studentList contains all students
+-----------------------------------------------------------------------------
+
+---
+
+### 5. Get Student by ID
+--------------------------------GETSTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role OR studentId = u.id)
+getStudent(t : Token, studentId : string) ==> (OK, studentData: Student)
+POSTCONDITION: studentId = studentData.id
+-----------------------------------------------------------------------------
+
+---
+
+### 6. Delete Student
+--------------------------------DELETESTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+deleteStudent(t : Token, studentId : string) ==> (OK)
+POSTCONDITION: S' = S \ {studentId}
+-----------------------------------------------------------------------------
+
+---
+
+### 7. Save Student Details
+--------------------------------SAVESTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+saveStudent(t : Token, studentData : Student) ==> (OK)
+POSTCONDITION: S' = S[studentData.id -> studentData]
+-----------------------------------------------------------------------------
+
+---
+
+### 8. Update Student Details
+--------------------------------UPDATESTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (studentData.id = u.id)
+updateStudent(t : Token, studentData : Student) ==> (OK)
+POSTCONDITION: S' = S[studentData.id -> studentData]
+-----------------------------------------------------------------------------
+
+---
+
+### 9. Get Student Details from User ID
+--------------------------------GETSTUDENTBYUSERID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+getStudentByUserId(t : Token) ==> (OK, studentData: Student)
+POSTCONDITION: studentData.id = u.id
+-----------------------------------------------------------------------------
+
+---
+
+### 10. Get All Books
+--------------------------------GETALLBOOKS_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+getAllBooks(t : Token) ==> (OK, bookList: List[Book])
+POSTCONDITION: bookList contains all books
+-----------------------------------------------------------------------------
+
+---
+
+### 11. Get Book by Code
+--------------------------------GETBOOK_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+getBook(t : Token, bookCode : string) ==> (OK, bookData: Book)
+POSTCONDITION: bookCode = bookData.code
+-----------------------------------------------------------------------------
+
+---
+
+### 12. Delete Book
+--------------------------------DELETEBOOK_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+deleteBook(t : Token, bookCode : string) ==> (OK)
+POSTCONDITION: B' = B \ {bookCode}
+-----------------------------------------------------------------------------
+
+---
+
+### 13. Save Book
+--------------------------------SAVEBOOK_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+saveBook(t : Token, bookData : Book) ==> (OK)
+POSTCONDITION: B' = B[bookData.code -> bookData]
+-----------------------------------------------------------------------------
+
+---
+
+### 14. Update Book
+--------------------------------UPDATEBOOK_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+updateBook(t : Token, bookData : Book) ==> (OK)
+POSTCONDITION: B' = B[bookData.code -> bookData]
+-----------------------------------------------------------------------------
