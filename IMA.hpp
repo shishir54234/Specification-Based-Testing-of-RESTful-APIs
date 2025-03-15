@@ -276,7 +276,8 @@ Program IMA(const Program &p, const Spec &spec) {
             if (apiBlock->call->call->name == funcName) {
                 matchedBlock = apiBlock.get();
                 // For this demo, assume the spec’s function has formal parameters "a" and "b".
-                formalParams = {"a", "b"};
+                formalParams = matchedBlock->formalParams;
+
                 break;
             }
         }
