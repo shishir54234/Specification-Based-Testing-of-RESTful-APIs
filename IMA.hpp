@@ -311,9 +311,10 @@ Program IMA(const Program &p, const Spec &spec) {
         // Rename pre- and postconditions using tau.
         auto renamedPre  = renameExprWithMap(matchedBlock->pre.get(), tau);
         auto renamedCallResponse = renameExprWithMap(matchedBlock->call->response.expr.get(), tau);
-        auto renamedBlockResponse = renameExprWithMap(matchedBlock->response.expr.get(), tau);
+        // auto renamedBlockResponse = renameExprWithMap(matchedBlock->response.expr.get(), tau);
         
         // Insert assume(pre[τ])
+        if(renamedPre)
         {
             vector<unique_ptr<Expr>> assumeArgs;
             assumeArgs.push_back(move(renamedPre));
@@ -321,6 +322,8 @@ Program IMA(const Program &p, const Spec &spec) {
             newStmts.push_back(make_unique<FuncCallStmt>(move(assumeCall)));
         }
         
+        //print api call as it is
+        newStmts.push_back(std::make_unique<FuncCallStmt>(std::move(*fcStmt)));
         // im assuming mutated vars are variables, what if its set or smth
         auto mutatedVars = getMutatedVars(*matchedBlock, formalParams, tau);
         for (auto &mv : mutatedVars) {
@@ -339,12 +342,13 @@ Program IMA(const Program &p, const Spec &spec) {
             newStmts.push_back(make_unique<FuncCallStmt>(move(assertCall)));
         }
 
-        if (renamedBlockResponse) {
-            vector<unique_ptr<Expr>> assertArgs;
-            assertArgs.push_back(move(renamedBlockResponse));
-            auto assertCall = make_unique<FuncCall>("assert", move(assertArgs));
-            newStmts.push_back(make_unique<FuncCallStmt>(move(assertCall)));
-        }
+        // if (renamedBlockResponse) {
+        //     vector<unique_ptr<Expr>> assertArgs;
+        //     assertArgs.push_back(move(renamedBlockResponse));
+        //     auto assertCall = make_unique<FuncCall>("assert", move(assertArgs));
+        //     newStmts.push_back(make_unique<FuncCallStmt>(move(assertCall)));
+        // }
+
         
     }
     return Program(move(newStmts));
