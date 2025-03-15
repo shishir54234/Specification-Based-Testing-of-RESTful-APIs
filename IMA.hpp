@@ -1,10 +1,13 @@
+#ifndef IMA_HPP
+#define IMA_HPP
+
 #include <iostream>
 #include <vector>
 #include <set>
 #include <map>
 #include <string>
 #include <memory>
-#include "ast.hpp"       // Your AST definitions
+#include "ast.hpp"       // Your AST definitions (with deep copy support via clone())
 #include "visitor.hpp"   // Your visitor and PrintVisitor definitions
 
 using namespace std;
@@ -13,7 +16,7 @@ using namespace std;
  * A simple environment (tau) mapping formal parameter names (from the spec)
  * to actual variable names (from the client code).
  */
-using Env = std::map<std::string, std::string>;
+using Env = map<string, string>;
 
 class SymbolTable {
 public:
@@ -25,7 +28,7 @@ public:
     }
     string to_string() {
         string s;
-        for(auto &var : symtable) {
+        for (auto &var : symtable) {
             s += var.name + " ";
         }
         return s;
@@ -39,43 +42,43 @@ public:
  */
 unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const string &add) {
     if (!expr) return nullptr;
-    if (auto var = dynamic_cast<Var *>(expr.get())) {
+    if (auto var = dynamic_cast<Var*>(expr.get())) {
         if (symtable->exists(*var))
             return make_unique<Var>(var->name + add);
         return make_unique<Var>(var->name);
     }
-    if (auto func = dynamic_cast<FuncCall *>(expr.get())) {
+    if (auto func = dynamic_cast<FuncCall*>(expr.get())) {
         vector<unique_ptr<Expr>> args;
         for (auto &arg : func->args) {
             args.push_back(convert1(arg, symtable, add));
         }
-        return make_unique<FuncCall>(func->name, std::move(args));
+        return make_unique<FuncCall>(func->name, move(args));
     }
-    if (auto num = dynamic_cast<Num *>(expr.get())) {
+    if (auto num = dynamic_cast<Num*>(expr.get())) {
         return make_unique<Num>(num->value);
     }
-    if (auto set = dynamic_cast<Set *>(expr.get())) {
+    if (auto set = dynamic_cast<Set*>(expr.get())) {
         vector<unique_ptr<Expr>> elements;
         for (auto &element : set->elements) {
             elements.push_back(convert1(element, symtable, add));
         }
-        return make_unique<Set>(std::move(elements));
+        return make_unique<Set>(move(elements));
     }
-    if (auto map = dynamic_cast<Map *>(expr.get())) {
+    if (auto mapExpr = dynamic_cast<Map*>(expr.get())) {
         vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> ret;
-        for (int i = 0; i < map->value.size(); i++) {
-            auto key = convert1(reinterpret_cast<unique_ptr<Expr>&>(map->value[i].first), symtable, add);
-            auto value = convert1(map->value[i].second, symtable, add);
-            ret.push_back(make_pair(std::move(reinterpret_cast<unique_ptr<Var>&>(key)), std::move(value)));
+        for (size_t i = 0; i < mapExpr->value.size(); i++) {
+            auto key = convert1(reinterpret_cast<unique_ptr<Expr>&>(mapExpr->value[i].first), symtable, add);
+            auto value = convert1(mapExpr->value[i].second, symtable, add);
+            ret.push_back(make_pair(move(reinterpret_cast<unique_ptr<Var>&>(key)), move(value)));
         }
-        return make_unique<Map>(std::move(ret));
+        return make_unique<Map>(move(ret));
     }
-    if (auto tuple = dynamic_cast<Tuple *>(expr.get())) {
+    if (auto tuple = dynamic_cast<Tuple*>(expr.get())) {
         vector<unique_ptr<Expr>> exprs;
         for (auto &exp : tuple->expr) {
             exprs.push_back(convert1(exp, symtable, add));
         }
-        return make_unique<Tuple>(std::move(exprs));
+        return make_unique<Tuple>(move(exprs));
     }
     throw runtime_error("Unknown expression type in convert function");
 }
@@ -85,12 +88,12 @@ unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const s
  * Generates a function call statement (here, for an input() call) based on the given expression.
  */
 unique_ptr<FuncCallStmt> makeStmt(unique_ptr<Expr> expr) {
-    auto call = dynamic_cast<Var *>(expr.get());
+    auto call = dynamic_cast<Var*>(expr.get());
     if (call) {
         vector<unique_ptr<Expr>> args;
         args.push_back(make_unique<Var>(call->name));
         auto h = make_unique<FuncCall>("input", move(args));
-        return make_unique<FuncCallStmt>(std::move(h));
+        return make_unique<FuncCallStmt>(move(h));
     }
     return nullptr;
 }
@@ -100,32 +103,32 @@ unique_ptr<FuncCallStmt> makeStmt(unique_ptr<Expr> expr) {
  * Traverses an expression to extract all variables (via convert1) that are inputs.
  */
 void getInputVars(unique_ptr<Expr> &expr, vector<unique_ptr<Expr>> &InputVariables, string toadd, SymbolTable *symtable) {
-    if (auto var = dynamic_cast<Var *>(expr.get())) {
+    if (auto var = dynamic_cast<Var*>(expr.get())) {
         InputVariables.push_back(convert1(expr, symtable, toadd));
         return;
     }
-    if (auto func = dynamic_cast<FuncCall *>(expr.get())) {
+    if (auto func = dynamic_cast<FuncCall*>(expr.get())) {
         for (auto &arg : func->args) {
             getInputVars(arg, InputVariables, toadd, symtable);
         }
     }
-    if(auto set = dynamic_cast<Set *>(expr.get())) {
-        for(auto &element : set->elements) {
+    if (auto set = dynamic_cast<Set*>(expr.get())) {
+        for (auto &element : set->elements) {
             getInputVars(element, InputVariables, toadd, symtable);
         }
     }
-    if (auto tuple = dynamic_cast<Tuple *>(expr.get())) {
-        for(auto &exp : tuple->expr) {
+    if (auto tuple = dynamic_cast<Tuple*>(expr.get())) {
+        for (auto &exp : tuple->expr) {
             getInputVars(exp, InputVariables, toadd, symtable);
         }
     }
-    if(auto map1 = dynamic_cast<Map *>(expr.get())) {
-        for(auto &element : map1->value) {
+    if (auto mapExpr = dynamic_cast<Map*>(expr.get())) {
+        for (auto &element : mapExpr->value) {
             getInputVars(reinterpret_cast<unique_ptr<Expr>&>(element.first), InputVariables, toadd, symtable);
             getInputVars(element.second, InputVariables, toadd, symtable);
         }
     }
-    if(auto num = dynamic_cast<Num *>(expr.get())) {
+    if (dynamic_cast<Num*>(expr.get())) {
         return;
     }
 }
@@ -138,56 +141,62 @@ unique_ptr<Expr> renameExprWithMap(const Expr* expr, const Env &env) {
     if (!expr) return nullptr;
     if (auto v = dynamic_cast<const Var*>(expr)) {
         auto it = env.find(v->name);
-        std::string newName = (it != env.end()) ? it->second : v->name;
-        return std::make_unique<Var>(newName);
+        string newName = (it != env.end()) ? it->second : v->name;
+        return make_unique<Var>(newName);
     }
     else if (auto num = dynamic_cast<const Num*>(expr)) {
-        return std::make_unique<Num>(num->value);
+        return make_unique<Num>(num->value);
     }
     else if (auto fc = dynamic_cast<const FuncCall*>(expr)) {
-        std::vector<unique_ptr<Expr>> newArgs;
+        vector<unique_ptr<Expr>> newArgs;
         newArgs.reserve(fc->args.size());
         for (auto &argPtr : fc->args) {
             newArgs.push_back(renameExprWithMap(argPtr.get(), env));
         }
-        return std::make_unique<FuncCall>(fc->name, std::move(newArgs));
+        return make_unique<FuncCall>(fc->name, move(newArgs));
     }
-    else if (auto poly = dynamic_cast<const PolymorphicFuncCall*>(expr)) {
-        std::vector<unique_ptr<Expr>> newArgs;
-        newArgs.reserve(poly->args.size());
-        for (auto &argPtr : poly->args) {
-            newArgs.push_back(renameExprWithMap(argPtr.get(), env));
-        }
-        return std::make_unique<PolymorphicFuncCall>(poly->name, poly->typeArgs, std::move(newArgs));
-    }
+    // else if (auto poly = dynamic_cast<const PolymorphicFuncCall*>(expr)) {
+    //     vector<unique_ptr<Expr>> newArgs;
+    //     newArgs.reserve(poly->args.size());
+    //     for (auto &argPtr : poly->args) {
+    //         newArgs.push_back(renameExprWithMap(argPtr.get(), env));
+    //     }
+    //     // Deep-copy typeArgs using clone()
+    //     vector<unique_ptr<TypeExpr>> newTypeArgs;
+    //     newTypeArgs.reserve(poly->typeArgs.size());
+    //     for (auto &typeArg : poly->typeArgs) {
+    //         newTypeArgs.push_back(typeArg->clone());
+    //     }
+    //     return make_unique<PolymorphicFuncCall>(poly->name, move(newTypeArgs), move(newArgs));
+    // }
     else if (auto s = dynamic_cast<const Set*>(expr)) {
-        std::vector<unique_ptr<Expr>> newElems;
+        vector<unique_ptr<Expr>> newElems;
         newElems.reserve(s->elements.size());
         for (auto &e : s->elements) {
             newElems.push_back(renameExprWithMap(e.get(), env));
         }
-        return std::make_unique<Set>(std::move(newElems));
+        return make_unique<Set>(move(newElems));
     }
     else if (auto m = dynamic_cast<const Map*>(expr)) {
-        std::vector<std::pair<unique_ptr<Var>, unique_ptr<Expr>>> newPairs;
+        vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> newPairs;
         newPairs.reserve(m->value.size());
         for (auto &pair : m->value) {
             auto newKeyExpr = renameExprWithMap(pair.first.get(), env);
             auto newValExpr = renameExprWithMap(pair.second.get(), env);
             auto newKeyVar = dynamic_cast<Var*>(newKeyExpr.release());
-            newPairs.push_back({std::unique_ptr<Var>(newKeyVar), std::move(newValExpr)});
+            newPairs.push_back({make_unique<Var>(newKeyVar->name), move(newValExpr)});
         }
-        return std::make_unique<Map>(std::move(newPairs));
+        return make_unique<Map>(move(newPairs));
     }
     else if (auto t = dynamic_cast<const Tuple*>(expr)) {
-        std::vector<unique_ptr<Expr>> newExprs;
+        vector<unique_ptr<Expr>> newExprs;
         newExprs.reserve(t->expr.size());
         for (auto &sub : t->expr) {
             newExprs.push_back(renameExprWithMap(sub.get(), env));
         }
-        return std::make_unique<Tuple>(std::move(newExprs));
+        return make_unique<Tuple>(move(newExprs));
     }
-    throw std::runtime_error("renameExprWithMap: Unhandled expression type");
+    throw runtime_error("renameExprWithMap: Unhandled expression type");
 }
 
 /**
@@ -197,21 +206,21 @@ unique_ptr<Expr> renameExprWithMap(const Expr* expr, const Env &env) {
 unique_ptr<Stmt> cloneStmt(const Stmt* s) {
     if (!s) return nullptr;
     if (auto a = dynamic_cast<const Assign*>(s)) {
-        auto leftVar = std::make_unique<Var>(a->left->name);
+        auto leftVar = make_unique<Var>(a->left->name);
         auto rightExpr = renameExprWithMap(a->right.get(), {});
-        return std::make_unique<Assign>(std::move(leftVar), std::move(rightExpr));
+        return make_unique<Assign>(move(leftVar), move(rightExpr));
     }
     else if (auto fc = dynamic_cast<const FuncCallStmt*>(s)) {
         auto oldCall = fc->call.get();
-        std::vector<unique_ptr<Expr>> newArgs;
+        vector<unique_ptr<Expr>> newArgs;
         newArgs.reserve(oldCall->args.size());
         for (auto &arg : oldCall->args) {
             newArgs.push_back(renameExprWithMap(arg.get(), {}));
         }
-        auto newCall = std::make_unique<FuncCall>(oldCall->name, std::move(newArgs));
-        return std::make_unique<FuncCallStmt>(std::move(newCall));
+        auto newCall = make_unique<FuncCall>(oldCall->name, move(newArgs));
+        return make_unique<FuncCallStmt>(move(newCall));
     }
-    throw std::runtime_error("cloneStmt: Unhandled statement type");
+    throw runtime_error("cloneStmt: Unhandled statement type");
 }
 
 /**
@@ -275,9 +284,13 @@ Program IMA(const Program &p, const Spec &spec) {
         for (auto &apiBlock : spec.blocks) {
             if (apiBlock->call->call->name == funcName) {
                 matchedBlock = apiBlock.get();
-                // For this demo, assume the spec’s function has formal parameters "a" and "b".
-                formalParams = matchedBlock->formalParams;
-
+                // Extract formal parameter names from the API block's function call.
+                for (auto &argExpr : matchedBlock->call->call->args) {
+                    if (auto varArg = dynamic_cast<Var*>(argExpr.get()))
+                        formalParams.push_back(varArg->name);
+                    else
+                        formalParams.push_back("TMP_expr");
+                }
                 break;
             }
         }
@@ -297,7 +310,8 @@ Program IMA(const Program &p, const Spec &spec) {
         
         // Rename pre- and postconditions using tau.
         auto renamedPre  = renameExprWithMap(matchedBlock->pre.get(), tau);
-        auto renamedPost = renameExprWithMap(matchedBlock->response.expr.get(), tau);
+        auto renamedCallResponse = renameExprWithMap(matchedBlock->call->response.expr.get(), tau);
+        auto renamedBlockResponse = renameExprWithMap(matchedBlock->response.expr.get(), tau);
         
         // Insert assume(pre[τ])
         {
@@ -307,7 +321,7 @@ Program IMA(const Program &p, const Spec &spec) {
             newStmts.push_back(make_unique<FuncCallStmt>(move(assumeCall)));
         }
         
-        // Insert assignments for mutated variables.
+        // im assuming mutated vars are variables, what if its set or smth
         auto mutatedVars = getMutatedVars(*matchedBlock, formalParams, tau);
         for (auto &mv : mutatedVars) {
             auto leftVar = make_unique<Var>(mv);
@@ -318,12 +332,22 @@ Program IMA(const Program &p, const Spec &spec) {
         }
         
         // Insert assert(post[τ])
-        {
+        if (renamedCallResponse) {
             vector<unique_ptr<Expr>> assertArgs;
-            assertArgs.push_back(move(renamedPost));
+            assertArgs.push_back(move(renamedCallResponse));
             auto assertCall = make_unique<FuncCall>("assert", move(assertArgs));
             newStmts.push_back(make_unique<FuncCallStmt>(move(assertCall)));
         }
+
+        if (renamedBlockResponse) {
+            vector<unique_ptr<Expr>> assertArgs;
+            assertArgs.push_back(move(renamedBlockResponse));
+            auto assertCall = make_unique<FuncCall>("assert", move(assertArgs));
+            newStmts.push_back(make_unique<FuncCallStmt>(move(assertCall)));
+        }
+        
     }
     return Program(move(newStmts));
 }
+
+#endif

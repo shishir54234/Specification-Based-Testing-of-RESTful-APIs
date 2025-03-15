@@ -1,9 +1,8 @@
-// test.cpp
 #include <iostream>
 #include <memory>
 #include <vector>
 #include "ast.hpp"    // Your AST definitions
-#include "ima.hpp"    // Contains the IMA(...) function
+#include "IMA.hpp"    // Contains the IMA(...) function
 #include "visitor.hpp"// Contains PrintVisitor
 
 using namespace std;
@@ -16,10 +15,9 @@ int main() {
 
     // Statement 1: user = input(var)
     {
-        auto lhs = make_unique<Var>("user");
+        auto lhs = make_unique<Var>("username");
         vector<unique_ptr<Expr>> inputArgs;
-        // Here "var" is a placeholder (could be an empty or dummy variable).
-        inputArgs.push_back(make_unique<Var>("var"));
+        inputArgs.push_back(make_unique<Var>(""));
         auto inputCall = make_unique<FuncCall>("input", move(inputArgs));
         auto assignStmt = make_unique<Assign>(move(lhs), move(inputCall));
         stmts.push_back(move(assignStmt));
@@ -27,9 +25,9 @@ int main() {
 
     // Statement 2: pass = input(var)
     {
-        auto lhs = make_unique<Var>("pass");
+        auto lhs = make_unique<Var>("password");
         vector<unique_ptr<Expr>> inputArgs;
-        inputArgs.push_back(make_unique<Var>("var"));
+        inputArgs.push_back(make_unique<Var>(""));
         auto inputCall = make_unique<FuncCall>("input", move(inputArgs));
         auto assignStmt = make_unique<Assign>(move(lhs), move(inputCall));
         stmts.push_back(move(assignStmt));
@@ -38,8 +36,8 @@ int main() {
     // Statement 3: signup(user, pass)
     {
         vector<unique_ptr<Expr>> args;
-        args.push_back(make_unique<Var>("user"));
-        args.push_back(make_unique<Var>("pass"));
+        args.push_back(make_unique<Var>("username"));
+        args.push_back(make_unique<Var>("password"));
         auto signupCall = make_unique<FuncCall>("signup", move(args));
         auto signupStmt = make_unique<FuncCallStmt>(move(signupCall));
         stmts.push_back(move(signupStmt));
@@ -49,77 +47,98 @@ int main() {
     // -------------------------------
     // 2. Build the API specification AST.
     // -------------------------------
-    // We assume the signup API spec uses formal parameters "u" and "p"
-    // with precondition: not_in(u, U)
-    // and postcondition: mapping(u, p, U)
-    // (After renaming via the environment, these become "user not in U" and "user->pass in U".)
-
-    // Build precondition: not_in(u, U)
+    // Precondition: not_in(u, U)
     vector<unique_ptr<Expr>> preArgs;
     preArgs.push_back(make_unique<Var>("u"));
     preArgs.push_back(make_unique<Var>("U"));
-    auto preExpr = make_unique<FuncCall>("not_in", move(preArgs));
+    auto precondition = make_unique<FuncCall>("not_in", move(preArgs));
 
-    // Build API call: signup(u, p)
-    vector<unique_ptr<Expr>> apiCallArgs;
-    apiCallArgs.push_back(make_unique<Var>("u"));
-    apiCallArgs.push_back(make_unique<Var>("p"));
-    auto apiCallFunc = make_unique<FuncCall>("signup", move(apiCallArgs));
+    // API Call: signup(u, p)
+    vector<unique_ptr<Expr>> apiArgs;
+    apiArgs.push_back(make_unique<Var>("u"));
+    apiArgs.push_back(make_unique<Var>("p"));
+    auto apiCallFunc = make_unique<FuncCall>("signup", move(apiArgs));
 
-    // Build postcondition: mapping(u, p, U)
+    // Postcondition: mapping(u, p, U)
     vector<unique_ptr<Expr>> postArgs;
     postArgs.push_back(make_unique<Var>("u"));
     postArgs.push_back(make_unique<Var>("p"));
     postArgs.push_back(make_unique<Var>("U"));
-    auto postExpr = make_unique<FuncCall>("mapping", move(postArgs));
+    auto postcondition = make_unique<FuncCall>("mapping", move(postArgs));
 
-    // Create the Response object with the postcondition expression.
-    Response resp(HTTPResponseCode::CREATED_201, move(postExpr));
+    // Create the Response object for the postcondition
+    Response response(HTTPResponseCode::CREATED_201, move(postcondition));
 
-    // Build the APIcall node using the signup call and the response.
-    auto apiCall = make_unique<APIcall>(move(apiCallFunc), std::move(resp));
+    // Create the API Call node
+    auto apiCall = make_unique<APIcall>(std::move(apiCallFunc), std::move(response));
 
-    // Specify the formal parameters for the API block.
-    vector<string> formalParams = {"u", "p"};
-
-    // Create the API block using the precondition, APIcall, and formal parameters.
-    // Note: The API constructor is assumed to take (precondition, APIcall, response, formalParams).
-    // If your API constructor is different, adjust accordingly.
+    // Create the API Block
     auto apiBlock = make_unique<API>(
-        move(preExpr),
-        move(apiCall),
-        // We recreate a Response for the API block (postcondition is the same)
-        Response(HTTPResponseCode::CREATED_201, 
-            make_unique<FuncCall>("mapping", vector<unique_ptr<Expr>>{
-                make_unique<Var>("u"),
-                make_unique<Var>("p"),
-                make_unique<Var>("U")
-            })
-        ),
-        formalParams
+        std::move(precondition), 
+        std::move(apiCall),
+        std::move(response)
     );
 
-    // Build the Spec. For simplicity, we leave globals, inits, and functions empty.
+    // Build the Spec
     vector<unique_ptr<Decl>> globals;
-    vector<unique_ptr<Init>> inits;
-    vector<unique_ptr<FuncDecl>> functions;
-    vector<unique_ptr<API>> apiBlocks;
-    apiBlocks.push_back(move(apiBlock));
 
-    Spec spec(move(globals), move(inits), move(functions), move(apiBlocks));
+    auto domain = std::make_unique<TypeConst>("string");
+    auto range = std::make_unique<TypeConst>("string");
+    
+    auto mapType = std::make_unique<MapType>(std::move(domain), std::move(range));
+    
+    // Create a unique_ptr<Decl> and store it in globals
+    globals.push_back(std::make_unique<Decl>("U", std::move(mapType)));
+    
+
+    vector<unique_ptr<Init>> inits;
+
+    vector<unique_ptr<FuncDecl>> functions;
+
+    auto usernameType = std::make_unique<TypeConst>("string");
+    auto passwordType = std::make_unique<TypeConst>("string");
+    
+    std::vector<std::unique_ptr<TypeExpr>> params;
+    params.push_back(std::move(usernameType));
+    params.push_back(std::move(passwordType));
+    
+    // Step 2: Define return type (HTTP CREATED_201 + string response)
+    auto returnType = std::make_unique<TypeConst>("string");
+    std::vector<std::unique_ptr<TypeExpr>> returnTypes;
+    returnTypes.push_back(std::move(returnType));
+    
+    // Step 3: Create the FuncDecl for signup as a unique_ptr
+    auto signup = std::make_unique<FuncDecl>(
+        "signup",
+        std::move(params),
+        std::make_pair(HTTPResponseCode::CREATED_201, std::move(returnTypes))
+    );
+    
+    // Step 4: Add to the vector
+    functions.push_back(std::move(signup));
+    
+
+    vector<unique_ptr<API>> apiBlocks;
+    apiBlocks.push_back(std::move(apiBlock));
+
+    Spec spec(
+        move(globals), 
+        move(inits), 
+        move(functions), 
+        move(apiBlocks)
+    );
 
     // -------------------------------
     // 3. Run the IMA algorithm.
     // -------------------------------
-    // This should transform the client program by inserting the API precondition (as assert)
-    // before the signup call and the postcondition (as assume) after the signup call.
     Program transformed = IMA(clientProgram, spec);
 
     // -------------------------------
     // 4. Print the transformed program.
     // -------------------------------
     PrintVisitor printer;
-    transformed.accept(&printer);
+    transformed.accept(printer);
+
 
     return 0;
 }
