@@ -215,8 +215,8 @@ POSTCONDITION: BS' = BS \ {bookStudent where bookStudent.id = id}
 PRECONDITION: (t -> u in T and u in U) AND (request is valid) AND (request does not overlap with existing records)
 accept(t : Token, request : Request) ==> (OK, savedBookStudent: BookStudent)
 POSTCONDITION:
-    If the request does not overlap with existing records:
-            BS' = BS ∪ {savedBookStudent}
-            R' = R \ {request}
-    If the request overlaps: Throws UnavailableForGivenDatesException
+    -- If the request does not overlap with existing records:
+        BS' = BS ∪ {savedBookStudent}
+        R' = R \ {request}
+    -- If the request overlaps: Throws UnavailableForGivenDatesException
 
