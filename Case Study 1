@@ -1,5 +1,41 @@
 **API Specifications for Library Management System**
 
+U : (string -> string) map // Users
+S : (string -> {string, string}) map // Students
+T : (string -> string) map // Tokens, key will be token and value will be user_id
+B : (string -> Book) map // Books, we might need to change this (custom objects).
+R : Request Set // Requests
+BS : BookStudent Set // Book-Student Records
+---
+
+register_admin: string * string -> HTTPResponse
+register_student: string * string * string -> HTTPResponse
+authenticate: string * string -> HTTPResponse
+getAllStudents: string -> HTTPResponse * List[Student]
+getStudent: string * string -> HTTPResponse * Student
+deleteStudent: string * string -> HTTPResponse
+saveStudent: string * Student -> HTTPResponse
+updateStudent: string * Student -> HTTPResponse
+getStudentByUserId: string * string -> HTTPResponse * Student
+getAllBooks: string -> HTTPResponse * List[Book]
+getBook: string * string -> HTTPResponse * Book
+deleteBook: string * string -> HTTPResponse
+saveBook: string * Book -> HTTPResponse
+getAllRequests: string -> HTTPResponse * List[Request]
+getRequestById: string * string -> HTTPResponse * Request
+deleteRequestById: string * string -> HTTPResponse * Request
+saveRequest: string * Request -> HTTPResponse * Request
+getAllBookStudents: string -> HTTPResponse * List[BookStudent]
+getBookStudentById: string * string -> HTTPResponse * BookStudent
+getBookStudentsByStudentId: string * string -> HTTPResponse * List[BookStudent]
+
+U = {}
+S = {}
+T = {}
+B = {}
+R = {}
+BS = {}
+
 ---
 
 ### 1. Register Admin
@@ -76,9 +112,9 @@ POSTCONDITION: S' = S[studentData.id -> studentData]
 
 ### 9. Get Student Details from User ID
 --------------------------------GETSTUDENTBYUSERID_OK--------------------------------
-PRECONDITION: (t -> u in T and u in U)
-getStudentByUserId(t : Token) ==> (OK, studentData: Student)
-POSTCONDITION: studentData.id = u.id
+PRECONDITION: (t -> u in T and userId in U and u in U)
+getStudentByUserId(t : Token, userId:string) ==> (OK, studentData: Student)
+POSTCONDITION: studentData.id = userId
 -----------------------------------------------------------------------------
 
 ---
@@ -136,21 +172,21 @@ POSTCONDITION: requestList contains all requests
 16. Get Requests by Student ID
 --------------------------------GETREQUESTSBYSTUDENTID_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U) AND (student_id exists in S)
-getAllRequestsByStudentId(t : Token, student_id : int) ==> (OK, requestList: List[Request])
+getAllRequestsByStudentId(t : Token, student_id :string) ==> (OK, requestList: List[Request])
 POSTCONDITION: requestList contains all requests where request.student.id = student_id
 
 
 17. Get Request by Request ID
 --------------------------------GETREQUESTBYID_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U) AND (id exists in R)
-getRequestById(t : Token, id : int) ==> (OK, request: Request)
+getRequestById(t : Token, id :string) ==> (OK, request: Request)
 POSTCONDITION: request.id = id
 
 
 18. Get Requests by Book ID
 --------------------------------GETREQUESTSBYBOOKID_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U) AND (id exists in B)
-getAllRequestsByBookCode(t : Token, id : int) ==> (OK, requestList: List[Request])
+getAllRequestsByBookCode(t : Token, id :string) ==> (OK, requestList: List[Request])
 POSTCONDITION: requestList contains all requests where request.book.id = id
 
 
@@ -164,7 +200,7 @@ POSTCONDITION: R' = R ∪ {savedRequest} AND savedRequest.student.user = u
 20. Delete Request by Request ID
 --------------------------------DELETEREQUESTBYID_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U) AND (id exists in R)
-deleteRequest(t : Token, id : int) ==> (OK, deletedRequest: Request)
+deleteRequest(t : Token, id :string) ==> (OK, deletedRequest: Request)
 POSTCONDITION: R' = R \ {deletedRequest} 
 
 
@@ -178,21 +214,21 @@ POSTCONDITION: bookStudentList contains all book-student pairs
 18. Get Book-Student Record by ID
 --------------------------------GETBOOKSTUDENTBYID_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U) AND (id exists in BS)
-getBookStudentById(t : Token, id : int) ==> (OK, bookStudent: BookStudent)
+getBookStudentById(t : Token, id :string) ==> (OK, bookStudent: BookStudent)
 POSTCONDITION: bookStudent.id = id
 
 
 19. Get Book-Student Records by Student ID
 --------------------------------GETBOOKSTUDENTSBYSTUDENTID_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U) AND (student_id exists in S)
-getByStudentId(t : Token, student_id : int) ==> (OK, bookStudentList: List[BookStudent])
+getByStudentId(t : Token, student_id :string) ==> (OK, bookStudentList: List[BookStudent])
 POSTCONDITION: bookStudentList contains all book-student pairs where bookStudent.student.id = student_id
 
 
 20. Get Book-Student Records by Book ID
 --------------------------------GETBOOKSTUDENTSBYBOOKID_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U) AND (id exists in B)
-getBookStudentByBookId(t : Token, id : int) ==> (OK, bookStudentList: List[BookStudent])
+getBookStudentByBookId(t : Token, id :string) ==> (OK, bookStudentList: List[BookStudent])
 POSTCONDITION: bookStudentList contains all book-student pairs where bookStudent.book.id = id
 
 
@@ -206,7 +242,7 @@ POSTCONDITION: BS' = BS ∪ {savedBookStudent}
 22. Delete Book-Student Record by ID
 --------------------------------DELETEBOOKSTUDENTBYID_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U) AND (id exists in BS)
-deleteBookStudentById(t : Token, id : int) ==> (OK)
+deleteBookStudentById(t : Token, id :string) ==> (OK)
 POSTCONDITION: BS' = BS \ {bookStudent where bookStudent.id = id}
 
 
