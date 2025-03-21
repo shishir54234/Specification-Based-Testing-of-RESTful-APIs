@@ -123,7 +123,7 @@ POSTCONDITION: studentData.id = userId
 --------------------------------GETALLBOOKS_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U)
 getAllBooks(t : Token) ==> (OK, bookList: List[Book])
-POSTCONDITION: bookList contains all books
+POSTCONDITION: bookList = B
 -----------------------------------------------------------------------------
 
 ---
@@ -166,7 +166,7 @@ POSTCONDITION: B' = B[bookData.code -> bookData]
 --------------------------------GETALLREQUESTS_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U)
 getAllRequests(t : Token) ==> (OK, requestList: List[Request])
-POSTCONDITION: requestList contains all requests
+POSTCONDITION: requestList = R
 
 
 16. Get Requests by Student ID
@@ -208,7 +208,7 @@ POSTCONDITION: R' = R \ {deletedRequest}
 --------------------------------GETALLBOOKSTUDENTS_OK--------------------------------
 PRECONDITION: (t -> u in T and u in U)
 getAllBooksOfStudent(t : Token) ==> (OK, bookStudentList: List[BookStudent])
-POSTCONDITION: bookStudentList contains all book-student pairs
+POSTCONDITION: bookStudentList = BS
 
 
 18. Get Book-Student Record by ID
