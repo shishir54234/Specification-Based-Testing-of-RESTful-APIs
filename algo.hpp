@@ -94,6 +94,92 @@ unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const s
     // Handle unknown expression type
     throw runtime_error("Unknown expression type in convert function");
 }
+unique_ptr<Expr> removethedashexpr(unique_ptr<Expr> &expr, set<string> &res){
+    if (!expr)
+    {
+        return;
+    }
+
+    if (auto var = dynamic_cast<Var *>(expr.get()))
+    {
+
+    }
+
+    if (auto func = dynamic_cast<FuncCall *>(expr.get()))
+    {
+        if(func->name=="'"){
+            auto *v = func->args[0].get();
+            if (auto var = dynamic_cast<Var *>(v)) {
+                res.insert(var->name);
+                return make_unique<Var>(var->name);
+            }
+            
+        }
+        else{
+            vector<unique_ptr<Expr>> args;
+            for (auto &arg : func->args)
+            {
+                args.push_back(removethedashexpr(arg, res));
+            }
+            if(func->name=="=")
+            {
+                if (auto fc = dynamic_cast<FuncCall *>(args[0].get()))
+                {
+                    if(fc->name=="'")
+                    {
+                        args.clear();
+                        auto *v = fc->args[0].get();
+                        auto var = dynamic_cast<Var *>(v);
+                        auto h=removethedashexpr(fc->args[1], res);
+                        
+                        return make_unique<FuncCall>("=", std::move(args));
+                    }
+                }
+            }
+            return make_unique<FuncCall>(func->name, std::move(args));
+        }
+    }
+
+    if (auto num = dynamic_cast<Num *>(expr.get()))
+    {
+        return make_unique<Num>(num->value);
+    }
+
+    if (auto set = dynamic_cast<Set *>(expr.get()))
+    {
+        vector<unique_ptr<Expr>> elements;
+        for (auto &element : set->elements)
+        {
+            elements.push_back(removethedashexpr(element, res));
+        }
+        return make_unique<Set>(std::move(elements));
+    }
+
+    if (auto map = dynamic_cast<Map *>(expr.get()))
+    {
+        vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> ret;
+        for (int i = 0; i < map->value.size(); i++)
+        {
+            auto key = removethedashexpr(reinterpret_cast<unique_ptr<Expr> &>(map->value[i].first), res);
+            auto value = removethedashexpr(map->value[i].second, res);
+            ret.push_back(make_pair(std::move(reinterpret_cast<unique_ptr<Var> &>(key)), std::move(value)));
+        }
+        return make_unique<Map>(std::move(ret));
+    }
+
+    if (auto tuple = dynamic_cast<Tuple *>(expr.get()))
+    {
+        vector<unique_ptr<Expr>> exprs;
+        for (auto &exp : tuple->expr)
+        {
+            exprs.push_back(removethedashexpr(exp, res));
+        }
+        return make_unique<Tuple>(std::move(exprs));
+    }
+
+    // Handle unknown expression type
+    throw runtime_error("Unknown expression type in convert function");
+}
 unique_ptr<FuncCallStmt> makeStmt(unique_ptr<Expr> expr)
 {
     // Create Var from the expr rather than using make_unique directly
@@ -138,6 +224,7 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
         return;
     }
 }
+
 Program convert(const Spec *apispec, SymbolTable symtable){
     vector<unique_ptr<Stmt>> program_stmts;
     cout<<apispec->blocks.size()<<endl;

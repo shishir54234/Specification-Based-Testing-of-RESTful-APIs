@@ -348,7 +348,7 @@ public:
     std::unique_ptr<Expr> expr;
 };
 class Response{
-    public:
+    public: 
     HTTPResponseCode code;
     std::unique_ptr<Expr> expr;
     Response(HTTPResponseCode code, std::unique_ptr<Expr> expr): code(code), expr(std::move(expr)){};
