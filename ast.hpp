@@ -417,6 +417,7 @@ public:
         visitor.visit(*this);
     }
 
+
     void accept(Visitor *visitor) {
         // for(auto& global: globals) {
         //     visitor->visitDecl(*global);

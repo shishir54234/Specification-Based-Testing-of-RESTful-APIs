@@ -24,6 +24,14 @@ class SymbolTable{
             return true;
         }
     }
+
+    string to_string(){
+        string s;
+        for(auto &var:symtable){
+            s+=var.name;
+        }
+        return s;
+    }
 };
 unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const string &add)
 {
@@ -227,9 +235,11 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
 
 Program convert(const Spec *apispec, SymbolTable symtable){
     vector<unique_ptr<Stmt>> program_stmts;
-    cout<<apispec->blocks.size()<<endl;
+    // cout<<apispec->blocks.size()<<endl;
     for(int i=0;i<apispec->blocks.size();i++){
         auto currtable=symtable.children[i];
+        // cout<<"Implmentation of to_string function"<<endl;
+        // cout<<currtable->to_string()<<endl;
         auto currblock = std::move(const_cast<std::unique_ptr<API>&>(apispec->blocks[i]));
         auto pre=std::move(currblock->pre);
         auto call=std::move(currblock->call);
@@ -267,7 +277,7 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         // currblock->pre=std::move(pre1);
         // currblock->call=std::move(call1);
         // currblock->response=std::move({response1,response.second});
-        cout<<program_stmts.size()<<"\n";
+        // cout<<program_stmts.size()<<"\n";
     }
     
     return Program(std::move(program_stmts));

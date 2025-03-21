@@ -22,8 +22,9 @@ string CodeGenerator::indent(string line, string istring, int level) {
 string CodeGenerator::generateCode(Program& program) {
     visitor->visitProgram(program);
     string raw = visitor->retrieve();
+    // cout<<"This is raw string"<<endl;
+    // cout<<raw<<endl;
     regex del("\n");
-
     sregex_token_iterator it(raw.begin(), raw.end(), del, -1);
     sregex_token_iterator end;
     vector<string> lines;
@@ -106,8 +107,20 @@ void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
 
 void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
     f.accept(this);
+
+    vector<string> arguments;
     string name = f.name;
 
+    string args = "";
+    for(auto& arg : f.args) {
+        string argstr = pop(strings);
+        arguments.push_back(argstr);
+        args += argstr + ",";
+    }
+    args.pop_back();
+
+
+    // cout<<"Function Name"<<f.name<<endl;
     if(f.name == "assume"){
         name = "S$.assume";
     }
@@ -116,17 +129,37 @@ void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
         name = "S$.assert";
     }
 
-    string args = "";
-    for(auto& arg : f.args) {
-        string argstr = pop(strings);
-        args += argstr + ",";
+    if(f.name == "="){
+        string equalCheck = arguments[0] + " == " + arguments[1];
+        strings.push(equalCheck);
+        return;
     }
-    args.pop_back();
 
-    if(f.name == "print"){
+    if(f.name == "not in"){
+        string notIn  = "!(" + arguments[0] + ".has(" + arguments[1] + "))";
+        strings.push(notIn);
+        return;
+    }
+
+    if  (f.name == "[]"){
+        string access = arguments[1] + "[" + arguments[0] + "]";
+        strings.push(access);
+        return;
+    }
+
+    if(f.name == "dom"){
+        strings.push(arguments[0]);
+        return;
+    }
+
+    if(f.name == "input"){
+        string assign = "var " + args + " = ";
         name = "S$.symbol";
         args += ",";
         args += "\"\"";
+
+        strings.push(assign + name + "(" + args + ")");
+        return;
     }
 
     strings.push(name + "(" + args + ")");
@@ -176,6 +209,7 @@ ExpoSEVisitor::~ExpoSEVisitor() {}
 void ExpoSEVisitor::visitVar(Var& v) {
     v.accept(this);
     string a = v.name;
+    // cout<<"Yo this is name:"<<a<<endl;
     strings.push(v.name);
 }
 

@@ -1,0 +1,258 @@
+**API Specifications for Library Management System**
+
+U : (string -> string) map // Users
+S : (string -> {string, string}) map // Students
+T : (string -> string) map // Tokens, key will be token and value will be user_id
+B : (string -> Book) map // Books, we might need to change this (custom objects).
+R : Request Set // Requests
+BS : BookStudent Set // Book-Student Records
+---
+
+register_admin: string * string -> HTTPResponse
+register_student: string * string * string -> HTTPResponse
+authenticate: string * string -> HTTPResponse
+getAllStudents: string -> HTTPResponse * List[Student]
+getStudent: string * string -> HTTPResponse * Student
+deleteStudent: string * string -> HTTPResponse
+saveStudent: string * Student -> HTTPResponse
+updateStudent: string * Student -> HTTPResponse
+getStudentByUserId: string * string -> HTTPResponse * Student
+getAllBooks: string -> HTTPResponse * List[Book]
+getBook: string * string -> HTTPResponse * Book
+deleteBook: string * string -> HTTPResponse
+saveBook: string * Book -> HTTPResponse
+getAllRequests: string -> HTTPResponse * List[Request]
+getRequestById: string * string -> HTTPResponse * Request
+deleteRequestById: string * string -> HTTPResponse * Request
+saveRequest: string * Request -> HTTPResponse * Request
+getAllBookStudents: string -> HTTPResponse * List[BookStudent]
+getBookStudentById: string * string -> HTTPResponse * BookStudent
+getBookStudentsByStudentId: string * string -> HTTPResponse * List[BookStudent]
+
+U = {}
+S = {}
+T = {}
+B = {}
+R = {}
+BS = {}
+
+---
+
+### 1. Register Admin
+--------------------------------REGISTER_ADMIN_OK--------------------------------
+PRECONDITION: U[username] = NIL
+register_admin(username : string, password : string) ==> (OK)
+POSTCONDITION: U' = U[username -> password]
+-----------------------------------------------------------------------------
+
+---
+
+### 2. Register Student
+--------------------------------REGISTER_STUDENT_OK--------------------------------
+PRECONDITION: S[email] = NIL
+register_student(name : string, email : string, password : string) ==> (OK)
+POSTCONDITION: S' = S[email -> {name, password}]
+-----------------------------------------------------------------------------
+
+---
+
+### 3. Authenticate User
+--------------------------------LOGIN_OK------------------------------------
+PRECONDITION: U[username] = password
+authenticate(username : string, password : string) ==> (OK, token)
+POSTCONDITION: T' = T[token -> username]
+-----------------------------------------------------------------------------
+
+---
+
+### 4. Get All Students
+--------------------------------GETALLSTUDENTS_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+getAllStudents(t : Token) ==> (OK, studentList: List[Student])
+POSTCONDITION: studentList contains all students
+-----------------------------------------------------------------------------
+
+---
+
+### 5. Get Student by ID
+--------------------------------GETSTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role OR studentId = u.id)
+getStudent(t : Token, studentId : string) ==> (OK, studentData: Student)
+POSTCONDITION: studentId = studentData.id
+-----------------------------------------------------------------------------
+
+---
+
+### 6. Delete Student
+--------------------------------DELETESTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+deleteStudent(t : Token, studentId : string) ==> (OK)
+POSTCONDITION: S' = S \ {studentId}
+-----------------------------------------------------------------------------
+
+---
+
+### 7. Save Student Details
+--------------------------------SAVESTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+saveStudent(t : Token, studentData : Student) ==> (OK)
+POSTCONDITION: S' = S[studentData.id -> studentData]
+-----------------------------------------------------------------------------
+
+---
+
+### 8. Update Student Details
+--------------------------------UPDATESTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (studentData.id = u.id)
+updateStudent(t : Token, studentData : Student) ==> (OK)
+POSTCONDITION: S' = S[studentData.id -> studentData]
+-----------------------------------------------------------------------------
+
+---
+
+### 9. Get Student Details from User ID
+--------------------------------GETSTUDENTBYUSERID_OK--------------------------------
+PRECONDITION: (t -> u in T and userId in U and u in U)
+getStudentByUserId(t : Token, userId:string) ==> (OK, studentData: Student)
+POSTCONDITION: studentData.id = userId
+-----------------------------------------------------------------------------
+
+---
+
+### 10. Get All Books
+--------------------------------GETALLBOOKS_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+getAllBooks(t : Token) ==> (OK, bookList: List[Book])
+POSTCONDITION: bookList contains all books
+-----------------------------------------------------------------------------
+
+---
+
+### 11. Get Book by Code
+--------------------------------GETBOOK_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+getBook(t : Token, bookCode : string) ==> (OK, bookData: Book)
+POSTCONDITION: bookCode = bookData.code
+-----------------------------------------------------------------------------
+
+---
+
+### 12. Delete Book
+--------------------------------DELETEBOOK_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+deleteBook(t : Token, bookCode : string) ==> (OK)
+POSTCONDITION: B' = B \ {bookCode}
+-----------------------------------------------------------------------------
+
+---
+
+### 13. Save Book
+--------------------------------SAVEBOOK_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+saveBook(t : Token, bookData : Book) ==> (OK)
+POSTCONDITION: B' = B[bookData.code -> bookData]
+-----------------------------------------------------------------------------
+
+---
+
+### 14. Update Book
+--------------------------------UPDATEBOOK_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+updateBook(t : Token, bookData : Book) ==> (OK)
+POSTCONDITION: B' = B[bookData.code -> bookData]
+-----------------------------------------------------------------------------
+
+15. Get All Requests
+--------------------------------GETALLREQUESTS_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+getAllRequests(t : Token) ==> (OK, requestList: List[Request])
+POSTCONDITION: requestList contains all requests
+
+
+16. Get Requests by Student ID
+--------------------------------GETREQUESTSBYSTUDENTID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (student_id exists in S)
+getAllRequestsByStudentId(t : Token, student_id :string) ==> (OK, requestList: List[Request])
+POSTCONDITION: requestList contains all requests where request.student.id = student_id
+
+
+17. Get Request by Request ID
+--------------------------------GETREQUESTBYID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (id exists in R)
+getRequestById(t : Token, id :string) ==> (OK, request: Request)
+POSTCONDITION: request.id = id
+
+
+18. Get Requests by Book ID
+--------------------------------GETREQUESTSBYBOOKID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (id exists in B)
+getAllRequestsByBookCode(t : Token, id :string) ==> (OK, requestList: List[Request])
+POSTCONDITION: requestList contains all requests where request.book.id = id
+
+
+19. Save Request
+--------------------------------SAVEREQUEST_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (request is valid)
+saveRequest(t : Token, request : Request) ==> (OK, savedRequest: Request)
+POSTCONDITION: R' = R ∪ {savedRequest} AND savedRequest.student.user = u
+
+
+20. Delete Request by Request ID
+--------------------------------DELETEREQUESTBYID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (id exists in R)
+deleteRequest(t : Token, id :string) ==> (OK, deletedRequest: Request)
+POSTCONDITION: R' = R \ {deletedRequest} 
+
+
+17. Get All Book-Student Records
+--------------------------------GETALLBOOKSTUDENTS_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U)
+getAllBooksOfStudent(t : Token) ==> (OK, bookStudentList: List[BookStudent])
+POSTCONDITION: bookStudentList contains all book-student pairs
+
+
+18. Get Book-Student Record by ID
+--------------------------------GETBOOKSTUDENTBYID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (id exists in BS)
+getBookStudentById(t : Token, id :string) ==> (OK, bookStudent: BookStudent)
+POSTCONDITION: bookStudent.id = id
+
+
+19. Get Book-Student Records by Student ID
+--------------------------------GETBOOKSTUDENTSBYSTUDENTID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (student_id exists in S)
+getByStudentId(t : Token, student_id :string) ==> (OK, bookStudentList: List[BookStudent])
+POSTCONDITION: bookStudentList contains all book-student pairs where bookStudent.student.id = student_id
+
+
+20. Get Book-Student Records by Book ID
+--------------------------------GETBOOKSTUDENTSBYBOOKID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (id exists in B)
+getBookStudentByBookId(t : Token, id :string) ==> (OK, bookStudentList: List[BookStudent])
+POSTCONDITION: bookStudentList contains all book-student pairs where bookStudent.book.id = id
+
+
+21. Save Book-Student Record
+--------------------------------SAVEBOOKSTUDENT_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (bookStudent is valid)
+saveBookStudent(t : Token, bookStudent : BookStudent) ==> (OK, savedBookStudent: BookStudent)
+POSTCONDITION: BS' = BS ∪ {savedBookStudent}
+
+
+22. Delete Book-Student Record by ID
+--------------------------------DELETEBOOKSTUDENTBYID_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (id exists in BS)
+deleteBookStudentById(t : Token, id :string) ==> (OK)
+POSTCONDITION: BS' = BS \ {bookStudent where bookStudent.id = id}
+
+
+23. Accept Request and Save as Book-Student Record
+--------------------------------ACCEPTREQUEST_OK--------------------------------
+PRECONDITION: (t -> u in T and u in U) AND (request is valid) AND (request does not overlap with existing records)
+accept(t : Token, request : Request) ==> (OK, savedBookStudent: BookStudent)
+POSTCONDITION:
+    -- If the request does not overlap with existing records:
+        BS' = BS ∪ {savedBookStudent}
+        R' = R \ {request}
+    -- If the request overlaps: Throws UnavailableForGivenDatesException
+
