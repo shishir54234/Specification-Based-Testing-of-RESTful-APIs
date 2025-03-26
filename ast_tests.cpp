@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <memory>
-#include "visitor.hpp"
+#include "PrintVisitor.hpp"
 #include "algo.hpp"
 using namespace std;
 // Assuming the AST classes are in "ast.hpp"
