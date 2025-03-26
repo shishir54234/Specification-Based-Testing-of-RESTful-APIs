@@ -169,32 +169,32 @@ public:
         indent--;
     }
 
-    void visit(const PolymorphicFuncCall &node) override
-    {
-        printIndent();
-        std::cout << "PolymorphicFuncCall: " << node.name << "\n";
-        indent++;
+    // void visit(const PolymorphicFuncCall &node) override
+    // {
+    //     printIndent();
+    //     std::cout << "PolymorphicFuncCall: " << node.name << "\n";
+    //     indent++;
 
-        printIndent();
-        std::cout << "Type Arguments:\n";
-        indent++;
-        for (const auto &typeArg : node.typeArgs)
-        {
-            typeArg->accept(*this);
-        }
-        indent--;
+    //     printIndent();
+    //     std::cout << "Type Arguments:\n";
+    //     indent++;
+    //     for (const auto &typeArg : node.typeArgs)
+    //     {
+    //         typeArg->accept(*this);
+    //     }
+    //     indent--;
 
-        printIndent();
-        std::cout << "Arguments:\n";
-        indent++;
-        for (const auto &arg : node.args)
-        {
-            arg->accept(*this);
-        }
-        indent--;
+    //     printIndent();
+    //     std::cout << "Arguments:\n";
+    //     indent++;
+    //     for (const auto &arg : node.args)
+    //     {
+    //         arg->accept(*this);
+    //     }
+    //     indent--;
 
-        indent--;
-    }
+    //     indent--;
+    // }
 
     // Declaration visitors
     void visit(const Decl &node) override

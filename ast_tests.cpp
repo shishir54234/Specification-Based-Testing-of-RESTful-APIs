@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <memory>
-#include "visitor.hpp"
+#include "PrintVisitor.hpp"
 #include "algo.hpp"
 using namespace std;
 // Assuming the AST classes are in "ast.hpp"
@@ -80,7 +80,7 @@ void testEverything(){
         vector<unique_ptr<Expr>> e2;
         e2.push_back(std::make_unique<Var>("U"));
         post_args1.push_back(std::make_unique<FuncCall>("'", move(e2)));
-        
+
         post_args1.push_back(std::make_unique<Var>("username"));
         post_args.push_back(make_unique<FuncCall>("[]", move(post_args1)));
         post_args.push_back(std::make_unique<Var>("password"));

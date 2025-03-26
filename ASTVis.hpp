@@ -49,7 +49,7 @@ public:
     virtual void visit(const Set &node) = 0;
     virtual void visit(const Map &node) = 0;
     virtual void visit(const Tuple &node) = 0;
-    virtual void visit(const PolymorphicFuncCall &node) = 0;
+    // virtual void visit(const PolymorphicFuncCall &node) = 0;
 
     // Declaration visitors
     virtual void visit(const Decl &node) = 0;
