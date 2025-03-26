@@ -1,24 +1,51 @@
 #include <iostream>
 #include <cassert>
 #include <memory>
-#include "jsCodeGen.h"
-#include "../ast.hpp"
-#include "../algo.hpp"
+#include "jsCodeGenerator/jsCodeGen.h"
+#include "ast.hpp"
+#include "algo.hpp"
 using namespace std;
 
 void test_everything(){
 
     // register admin register student
     std::vector<std::unique_ptr<Decl>> globals;
+
+    std::vector<std::unique_ptr<TypeExpr>> tupletypeargs;
+
+    // tupletypeargs.push_back(std::make_unique<TypeConst>("string"));
+    // tupletypeargs.push_back(std::make_unique<TypeConst>("string"));// {, std::make_unique<TypeConst>("string")};
+
     // U : (string -> string) map // Users
     globals.push_back(std::make_unique<Decl>("U", std::make_unique<MapType>(std::make_unique<TypeConst>("string"), std::make_unique<TypeConst>("string"))));
     // S : (string -> {string, string}) map // Students
-    globals.push_back(std::make_unique<Decl>("S", std::make_unique<MapType>(std::make_unique<TypeConst>("string"), std::make_unique<TupleType>(std::make_unique<TypeConst>("string"), std::make_unique<TypeConst>("string")))));
+    globals.push_back(std::make_unique<Decl>("S", std::make_unique<MapType>(std::make_unique<TypeConst>("string"), std::make_unique<TupleType>(std::move(tupletypeargs)))));
     // T : (string -> string)
     globals.push_back(std::make_unique<Decl>("T", std::make_unique<MapType>(std::make_unique<TypeConst>("string"), std::make_unique<TypeConst>("string"))));
     // B:(string->Book) How do we write this? Maybe we need custom types? Or do we simplify the Book into a tuple type ?
     // R : Request Set // Requests
     //BS:BookStudent Set // Book-Student Records
+
+    vector<unique_ptr<Init>> inits;
+    unique_ptr<Expr> map1 = std::make_unique<Map>(vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>());
+    unique_ptr<Init> init1 = std::make_unique<Init>("U", std::move(map1));
+
+
+    vector<unique_ptr<FuncDecl>> funcDecls;
+    std::vector<std::unique_ptr<TypeExpr>> params;
+    params.push_back(std::make_unique<TypeConst>("string"));
+    params.push_back(std::make_unique<TypeConst>("string"));
+    vector<unique_ptr<TypeExpr>> resp;
+    auto signup = make_unique<FuncDecl>("signup", move(params), std::make_pair(HTTPResponseCode::CREATED_201, move(resp)));
+    funcDecls.push_back(std::move(signup));
+    std::vector<std::unique_ptr<TypeExpr>> params1;
+    params1.push_back(std::make_unique<TypeConst>("string"));
+    params1.push_back(std::make_unique<TypeConst>("string"));
+    vector<unique_ptr<TypeExpr>> resp1;
+    resp1.push_back(std::make_unique<TypeConst>("Token"));
+    auto login = make_unique<FuncDecl>("login", move(params1), std::make_pair(HTTPResponseCode::CREATED_201, move(resp1)));
+    funcDecls.push_back(std::move(login));
+
         vector<unique_ptr<API>>
             apis;
     {
@@ -114,7 +141,44 @@ void test_everything(){
 
         // full thing:
         auto api = std::make_unique<API>(std::move(pre), std::move(call), Response(HTTPResponseCode::OK_200, make_unique<FuncCall>("=", move(post_args))));
+        apis.push_back(std::move(api));
+    }
+    {
+        vector<unique_ptr<Expr>> pre_args;
+        vector<unique_ptr<Expr>> pre1;
+        
     }
 
+    auto spec = make_unique<Spec>(move(globals), move(inits), move(funcDecls), move(apis));
+
+    PrintVisitor visitor;
+    spec->accept(visitor);
+    SymbolTable symtable;
+    symtable.symtable.insert(Var("U"));
+    SymbolTable sym1;
+    sym1.symtable.insert(Var("username"));
+    sym1.symtable.insert(Var("password"));
+    symtable.children.push_back(&sym1);
+    SymbolTable sym2;
+    sym2.symtable.insert(Var("username"));
+    sym2.symtable.insert(Var("password"));
+    symtable.children.push_back(&sym2);
+    Program p = convert(spec.get(), symtable);
+    // vector<unique_ptr<Stmt>> stmts;
+    // for(auto &stmt:p.statements){
+    //     stmts.push_back(move(stmt));
+    // }
+    p.accept(visitor);
+    ExpoSECodeGenerator ecg;
+
+    cout<<"generating expoSE code:";
+    string code = ecg.generateCode(p);
+    cout << code;
+}
+
+
+int main(){
+    test_everything();
+    return 0;
 }
 
