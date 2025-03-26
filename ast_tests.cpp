@@ -80,7 +80,7 @@ void testEverything(){
         vector<unique_ptr<Expr>> e2;
         e2.push_back(std::make_unique<Var>("U"));
         post_args1.push_back(std::make_unique<FuncCall>("'", move(e2)));
-
+        
         post_args1.push_back(std::make_unique<Var>("username"));
         post_args.push_back(make_unique<FuncCall>("[]", move(post_args1)));
         post_args.push_back(std::make_unique<Var>("password"));
@@ -98,6 +98,11 @@ void testEverything(){
     sym1.symtable.insert(Var("username"));
     sym1.symtable.insert(Var("password"));
     symtable.children.push_back(&sym1);
+    SymbolTable sym2;
+    sym2.symtable.insert(Var("username"));
+    sym2.symtable.insert(Var("password"));
+    symtable.children.push_back(&sym2);
+
     Program p = convert(spec.get(), symtable);
     PrintVisitor visitor1;
     p.accept(visitor1);
