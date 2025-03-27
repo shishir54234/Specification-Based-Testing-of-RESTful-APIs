@@ -76,7 +76,7 @@ POSTCONDITION: studentList contains all students
 
 ### 5. Get Student by ID
 --------------------------------GETSTUDENT_OK--------------------------------
-PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role OR studentId = u.id)
+PRECONDITION: (t in T and T[t].id in U) AND ((ADMIN in T[t].role AND studentId in U) OR studentId = T[t].id)
 getStudent(t : Token, studentId : string) ==> (OK, studentData: Student)
 POSTCONDITION: studentId = studentData.id
 -----------------------------------------------------------------------------
