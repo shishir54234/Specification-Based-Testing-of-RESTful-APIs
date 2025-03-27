@@ -1,4 +1,3 @@
-
 #pragma once
 #include <iostream>
 #include <vector>
@@ -8,6 +7,7 @@
 #include <memory>
 using namespace std;
 #include "ast.hpp"
+#include "PrintVisitor.hpp"
 #include "PrintVisitor.hpp"
 #ifndef ALGO_HPP
 #define ALGO_HPP
@@ -26,7 +26,7 @@ class SymbolTable{
     }
 
     string to_string(){
-        string s;
+        string s="";
         for(auto &var:symtable){
             s+=var.name;
         }
@@ -100,7 +100,7 @@ unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const s
     }
 
     // Handle unknown expression type
-    throw runtime_error("Unknown expression type in convert function");
+    // throw runtime_error("Unknown expression type in convert function");
 }
 // U' = U union {}
 // ===>
@@ -275,6 +275,9 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
     if(!expr){
         return;
     }
+    if(!expr){
+        return;
+    }
     if (auto var = dynamic_cast<Var *>(expr.get())){
         InputVariables.push_back(convert1(expr,symtable,toadd));
         return;
@@ -306,6 +309,7 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
     }
 }
 // all couts are debug statements ignore them 
+// all couts are debug statements ignore them 
 Program convert(const Spec *apispec, SymbolTable symtable){
     vector<unique_ptr<Stmt>> program_stmts;
      cout<<"we got here"<<apispec->blocks.size()<<endl;
@@ -318,9 +322,13 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         // take the current block its pre condition somewhere, 
         //its post condition somewhere, and its call, response also in variables 
         auto currblock = std::move(const_cast<std::unique_ptr<API>&>(apispec->blocks[i]));
+        cout<<"MI \n"; 
         auto pre=std::move(currblock->pre);
+        cout<<"MI \n"; 
         auto call=std::move(currblock->call);
+        cout<<"MI \n"; 
         auto response=std::move(currblock->response);
+        cout<<"MI \n"; 
         auto post = std::move(response.expr);
         
 
@@ -330,6 +338,7 @@ Program convert(const Spec *apispec, SymbolTable symtable){
             getInputVars(call->call->args[j], InputVariables, to_string(i), currtable);
         }
         // Making Statements for the input variables 
+        // Making Statements for the input variables 
         for(int j=0;j<InputVariables.size();j++){
             program_stmts.push_back(makeStmt(std::move(InputVariables[j])));
         }
@@ -337,11 +346,15 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         cout<<"We made it here"<<endl;
         // we change the variables names here appropriately for e.g. adding uid --> uid + (i), but not changing
         // the global variables
+        // we change the variables names here appropriately for e.g. adding uid --> uid + (i), but not changing
+        // the global variables
         auto pre1=convert1(pre,currtable,to_string(i));
         auto callexpr = std::make_unique<FuncCall>(call->call->name, std::move(call->call->args));
         auto call1=convert1(reinterpret_cast<unique_ptr<Expr>&>(callexpr),currtable,to_string(i));
         auto post1=convert1(post,currtable,to_string(i));
         cout << "before this it works" << endl;
+
+        // we get those global variable names where we have to add the ' to them 
 
         // we get those global variable names where we have to add the ' to them 
         set<string> res;
@@ -356,8 +369,18 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         program_stmts.push_back(std::move(c2));
         
         // Making statemnents for the variables with a dash 
+        
+        
+        vector<unique_ptr<Expr>> v1;v1.push_back(std::move(pre1));
+        // Making the Precondition Statement 
+        unique_ptr<FuncCall> p2 = make_unique<FuncCall>("assume", std::move(v1));
+        unique_ptr<FuncCallStmt> c2=make_unique<FuncCallStmt>(move(p2));
+        program_stmts.push_back(std::move(c2));
+        
+        // Making statemnents for the variables with a dash 
         for (auto &s : res)
         {
+            cout << "Variables with dash" << s << endl;
             cout << "Variables with dash" << s << endl;
             auto g = makeStmt(make_unique<Var>(s + "_old"));
             vector<unique_ptr<Expr>> v;
@@ -369,6 +392,7 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         }
         cout<<"So we could make the stmts"<<endl;
 
+
         
         auto call2 = std::move(call1);
         unique_ptr<FuncCallStmt> c4 = make_unique<FuncCallStmt>(
@@ -377,7 +401,12 @@ Program convert(const Spec *apispec, SymbolTable symtable){
 
         // Since the variables that need to be replaced with the old , from ' to no dash would lie in the postexpression
         // we run the post condition through the removethedash expr
+
+        // Since the variables that need to be replaced with the old , from ' to no dash would lie in the postexpression
+        // we run the post condition through the removethedash expr
         post1=removethedashexpr(post1,res);
+
+        // just making program statements now 
 
         // just making program statements now 
         vector<unique_ptr<Expr>> v2; v2.push_back(std::move(post1));
