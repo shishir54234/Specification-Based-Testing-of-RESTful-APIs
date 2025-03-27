@@ -275,7 +275,7 @@ public:
 class Map : public Expr
 {
 public:
-    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : Expr(ExpressionType::MAP),value(std::move(value)){}
+    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> value) : Expr(ExpressionType::MAP),value(std::move(value)){}
     void accept(ASTVisitor& visitor) const override {
         visitor.visit(*this);
     }

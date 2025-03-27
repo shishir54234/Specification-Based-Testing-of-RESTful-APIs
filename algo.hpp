@@ -8,7 +8,6 @@
 using namespace std;
 #include "ast.hpp"
 #include "PrintVisitor.hpp"
-#include "PrintVisitor.hpp"
 #ifndef ALGO_HPP
 #define ALGO_HPP
 class SymbolTable{
@@ -27,9 +26,12 @@ class SymbolTable{
 
     string to_string(){
         string s="";
+        cout<<"Number of elements here are"<<symtable.size()<<endl;
         for(auto &var:symtable){
+            cout<<var.name<<" ";
             s+=var.name;
         }
+        cout<<"The final string is"<<s<<" "<<endl;
         return s;
     }
 };
@@ -158,6 +160,7 @@ void addthedashexpr(unique_ptr<Expr> &expr, set<string> &res){
         {
             addthedashexpr(element, res);
         }
+        return;
     }
 
     if (auto map = dynamic_cast<Map *>(expr.get()))
@@ -168,6 +171,7 @@ void addthedashexpr(unique_ptr<Expr> &expr, set<string> &res){
             addthedashexpr(reinterpret_cast<unique_ptr<Expr> &>(map->value[i].first), res);
             addthedashexpr(map->value[i].second, res);
         }
+        return;
     }
 
     if (auto tuple = dynamic_cast<Tuple *>(expr.get()))
@@ -177,10 +181,11 @@ void addthedashexpr(unique_ptr<Expr> &expr, set<string> &res){
         {
             addthedashexpr(exp, res);
         }
+        return;
     }
-    // cout<<"WHAT YOU DIDNT HANDLE THIS ????"<<endl;
+    cout<<"WHAT YOU DIDNT HANDLE THIS ????"<<endl;
     // // Handle unknown expression type
-    throw runtime_error("Unknown expression type in convert function");
+    // throw runtime_error("Unknown expression type in convert function");
 }
 unique_ptr<Expr> removethedashexpr(unique_ptr<Expr>&expr, set<string> &res, int flag=0)
 {
@@ -315,10 +320,10 @@ Program convert(const Spec *apispec, SymbolTable symtable){
      cout<<"we got here"<<apispec->blocks.size()<<endl;
     for(int i=0;i<apispec->blocks.size();i++){
         cout<<"Index: "<<i<<endl;
-        auto currtable=symtable.children[i];
+        SymbolTable *currtable = symtable.children[i];
         cout<<"Implmentation of to_string function"<<endl;
+        // cout<<symtable.children[i]<<endl;
         cout<<currtable->to_string()<<endl;
-
         // take the current block its pre condition somewhere, 
         //its post condition somewhere, and its call, response also in variables 
         auto currblock = std::move(const_cast<std::unique_ptr<API>&>(apispec->blocks[i]));
@@ -358,17 +363,10 @@ Program convert(const Spec *apispec, SymbolTable symtable){
 
         // we get those global variable names where we have to add the ' to them 
         set<string> res;
+        PrintVisitor p;
+        post1->accept(p);
         addthedashexpr(post1, res);
         cout<<"So the dash works.."<<endl;
-        
-        
-        vector<unique_ptr<Expr>> v1;v1.push_back(std::move(pre1));
-        // Making the Precondition Statement 
-        unique_ptr<FuncCall> p2 = make_unique<FuncCall>("assume", std::move(v1));
-        unique_ptr<FuncCallStmt> c2=make_unique<FuncCallStmt>(move(p2));
-        program_stmts.push_back(std::move(c2));
-        
-        // Making statemnents for the variables with a dash 
         
         
         vector<unique_ptr<Expr>> v1;v1.push_back(std::move(pre1));
