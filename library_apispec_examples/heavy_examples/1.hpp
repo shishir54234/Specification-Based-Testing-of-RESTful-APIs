@@ -1,7 +1,12 @@
 
 #pragma once
 
-
+#include <string>
+#include <iostream>
+#include <cassert>
+#include <memory>
+#include "../ast.hpp"
+#include "../algo.hpp"
 class heavyexample1
 {
     public:
