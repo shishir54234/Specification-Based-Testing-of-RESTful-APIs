@@ -55,7 +55,6 @@ public:
     // Declaration visitors
     virtual void visit(const Decl &node) = 0;
     virtual void visit(const FuncDecl &node) = 0;
-    
 
     // API and Related visitors
     virtual void visit(const APIcall &node) = 0;
