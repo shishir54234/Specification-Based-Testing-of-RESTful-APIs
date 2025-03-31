@@ -196,6 +196,9 @@ unique_ptr<Expr> renameExprWithMap(const Expr* expr, const Env &env) {
         }
         return make_unique<Tuple>(move(newExprs));
     }
+    else if (auto string = dynamic_cast<const String*>(expr)) {
+        return make_unique<String>(string->value);
+    }
     throw runtime_error("renameExprWithMap: Unhandled expression type");
 }
 

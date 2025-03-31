@@ -13,6 +13,7 @@ class TypeExpr;
 class Var;
 class FuncCall;
 class Num;
+class String;
 class Set;
 class Map;
 class Tuple;
@@ -47,6 +48,7 @@ public:
     virtual void visit(const Var &node) = 0;
     virtual void visit(const FuncCall &node) = 0;
     virtual void visit(const Num &node) = 0;
+    virtual void visit(const String &node) = 0;
     virtual void visit(const Set &node) = 0;
     virtual void visit(const Map &node) = 0;
     virtual void visit(const Tuple &node) = 0;

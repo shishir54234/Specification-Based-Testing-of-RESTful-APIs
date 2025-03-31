@@ -4,6 +4,7 @@
 #include "ast.hpp"   
 #include "IMA.hpp"    
 #include "PrintVisitor.hpp"
+#include "jsCodeGen.hpp"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ int main() {
     {
         auto lhs = make_unique<Var>("username");
         vector<unique_ptr<Expr>> inputArgs;
-        inputArgs.push_back(make_unique<Var>(""));
+        inputArgs.push_back(make_unique<String>("username"));
         auto inputCall = make_unique<FuncCall>("input", move(inputArgs));
         auto assignStmt = make_unique<Assign>(move(lhs), move(inputCall));
         stmts.push_back(move(assignStmt));
@@ -42,7 +43,7 @@ int main() {
     {
         auto lhs = make_unique<Var>("password");
         vector<unique_ptr<Expr>> inputArgs;
-        inputArgs.push_back(make_unique<Var>(""));
+        inputArgs.push_back(make_unique<String>("password"));
         auto inputCall = make_unique<FuncCall>("input", move(inputArgs));
         auto assignStmt = make_unique<Assign>(move(lhs), move(inputCall));
         stmts.push_back(move(assignStmt));
@@ -158,7 +159,7 @@ int main() {
     // -------------------------------
     // 4. Print the transformed program.
     // -------------------------------
-    PrintVisitor printer;
+    jsCodeGen printer;
     transformed.accept(printer);
 
 
