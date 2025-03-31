@@ -123,6 +123,12 @@ public:
         std::cout << "Num: " << node.value << '\n';
     }
 
+    void visit(const String &node) override
+    {
+        printIndent();
+        std::cout << "String: " << node.value << '\n';
+    }
+
     void visit(const Set &node) override
     {
         printIndent();

@@ -18,6 +18,7 @@ enum class HTTPResponseCode
 enum ExpressionType {
     MAP,
     VAR,
+    STRING,
     NUM,
     TUPLE,
     SET,
@@ -293,6 +294,19 @@ public:
     }
 
     int value;
+};
+
+class String : public Expr
+{
+    public:
+    explicit String(string value) : Expr(ExpressionType::STRING),value(value) {}
+    void accept(ASTVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
+
+
+    string value;
+
 };
 
 class Set : public Expr
