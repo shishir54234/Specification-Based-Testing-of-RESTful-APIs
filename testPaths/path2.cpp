@@ -210,7 +210,7 @@ int main()
         vector<unique_ptr<Expr>> postArgs, postArgs1;
         vector<unique_ptr<Expr>> e2;
         e2.push_back(make_unique<Var>("U"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for U
+        // postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for U
         postArgs1.push_back(make_unique<Var>("u"));
         postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // represents U[u]
         postArgs.push_back(make_unique<Var>("p"));
@@ -240,7 +240,7 @@ int main()
         vector<unique_ptr<Expr>> postArgs, postArgs1;
         vector<unique_ptr<Expr>> e2;
         e2.push_back(make_unique<Var>("U"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for U
+        // postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for U
         postArgs1.push_back(make_unique<Var>("u"));
         postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // represents U[u]
         postArgs.push_back(make_unique<Var>("p"));
@@ -270,7 +270,7 @@ int main()
         vector<unique_ptr<Expr>> postArgs, postArgs1;
         vector<unique_ptr<Expr>> e2;
         e2.push_back(make_unique<Var>("T"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for T
+        // postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for T
         postArgs1.push_back(make_unique<Var>("u"));
         postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // represents T[u]
         postArgs.push_back(make_unique<Var>("token"));
@@ -300,7 +300,7 @@ int main()
         vector<unique_ptr<Expr>> postArgs, postArgs1;
         vector<unique_ptr<Expr>> e2;
         e2.push_back(make_unique<Var>("T"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for T
+        // postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for T
         postArgs1.push_back(make_unique<Var>("u"));
         postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // represents T[u]
         postArgs.push_back(make_unique<Var>("token"));
