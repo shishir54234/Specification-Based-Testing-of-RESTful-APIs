@@ -38,26 +38,10 @@ enum TypeExpression{
 enum StatementType{
     ASSIGN,
     FUNCTIONCALL_STMT,
+    DECL,
 };
 
-class Decl
-{
-public:
-    Decl(std::string name, std::unique_ptr<TypeExpr> typeExpr)
-        : name(std::move(name)), type(std::move(typeExpr)) {}
-    virtual ~Decl() = default;
-    virtual void accept(ASTVisitor &visitor) {
-        cout<<"hey\n";
-        visitor.visit(*this);
-    }
 
-    void accept(Visitor* visitor){
-        // visitor->visitTypeExpr(*type);
-    }
-    
-    std::string name;
-    std::unique_ptr<TypeExpr> type;
-};
 class fundecl{
     public:
     std::string name;
@@ -70,6 +54,7 @@ class TypeExpr
 public:
     virtual ~TypeExpr() = default;
     virtual void accept(ASTVisitor &visitor) const = 0;
+    virtual std::unique_ptr<TypeExpr> clone() const = 0;
     TypeExpression typeExpression;
 protected:
     TypeExpr(TypeExpression typeExpr): typeExpression(typeExpr) {}
@@ -86,6 +71,9 @@ public:
     }
 
     void accept(Visitor* visitor){
+    }
+    std::unique_ptr<TypeExpr> clone() const override {
+        return std::make_unique<TypeConst>(name);
     }
     std::string name;
 };
@@ -106,6 +94,15 @@ public:
         }
         // visitor->visitTypeExpr(*returnType);
     }
+    std::unique_ptr<TypeExpr> clone() const override {
+        std::vector<std::unique_ptr<TypeExpr>> clonedParams;
+        for (const auto &param : params) {
+            clonedParams.push_back(param->clone());
+        }
+        auto clonedReturnType = returnType ? returnType->clone() : nullptr;
+        return std::make_unique<FuncType>(std::move(clonedParams), std::move(clonedReturnType));
+    }
+
     std::vector<std::unique_ptr<TypeExpr>> params;
     std::unique_ptr<TypeExpr> returnType;
 };
@@ -122,6 +119,11 @@ public:
     void accept(Visitor* visitor){
         // visitor->visitTypeExpr(*domain);
         // visitor->visitTypeExpr(*range);
+    }
+    std::unique_ptr<TypeExpr> clone() const override {
+        auto clonedDomain = domain ? domain->clone() : nullptr;
+        auto clonedRange = range ? range->clone() : nullptr;
+        return std::make_unique<MapType>(std::move(clonedDomain), std::move(clonedRange));
     }
 
     std::unique_ptr<TypeExpr> domain;
@@ -142,6 +144,15 @@ public:
             // visitor->visitTypeExpr(*e);
         }
     }
+        // Clone implementation for TupleType
+        std::unique_ptr<TypeExpr> clone() const override {
+            std::vector<std::unique_ptr<TypeExpr>> clonedElements;
+            for (const auto &element : elements) {
+                clonedElements.push_back(element->clone());
+            }
+            return std::make_unique<TupleType>(std::move(clonedElements));
+        }
+    
     std::vector<std::unique_ptr<TypeExpr>> elements;
 };
 
@@ -157,9 +168,42 @@ public:
     void accept(Visitor* visitor){
         // visitor->visitTypeExpr(*elementType);
     }
+    std::unique_ptr<TypeExpr> clone() const override {
+        auto clonedElementType = elementType ? elementType->clone() : nullptr;
+        return std::make_unique<SetType>(std::move(clonedElementType));
+    }
+    
     std::unique_ptr<TypeExpr> elementType;
 };
+class Decl
+{
+public:
+    Decl(std::string name, std::unique_ptr<TypeExpr> typeExpr)
+        : name(std::move(name)), type(std::move(typeExpr)) {}
+    virtual ~Decl() = default;
+    virtual void accept(ASTVisitor &visitor) {
+        // cout<<"hey\n";
+        visitor.visit(*this);
+    }
 
+    void accept(Visitor* visitor){
+        // visitor->visitTypeExpr(*type);
+    }
+        // Copy constructor for deep copying.
+    Decl(const Decl &other)
+    : name(other.name) {
+        if (other.type) {
+            // This assumes that TypeExpr has a clone() method.
+            type = other.type->clone();
+        }
+    }
+    virtual std::unique_ptr<Decl> clone() const {
+        return std::make_unique<Decl>(*this);
+    }
+
+    std::string name;
+    std::unique_ptr<TypeExpr> type;
+};
 // Expressions
 class Expr
 {
@@ -495,20 +539,27 @@ public:
 class Program
 {
 public:
-    explicit Program(std::vector<std::unique_ptr<Stmt>> statements)
-        : statements(std::move(statements)) {}
+    explicit Program(std::vector<std::unique_ptr<Stmt>> statements,vector<std::unique_ptr<Decl>> declarations)
+    : statements(std::move(statements)), declarations(std::move(declarations)) {}
     void accept(ASTVisitor &visitor)
     {
         visitor.visit(*this);
     }
-
     void accept(Visitor *visitor) {
+
+        for (auto &decl : declarations) {
+            visitor->visitDecl(*decl);
+        }
+        
         for (auto& stmt : statements) { // Use const reference to avoid unnecessary copies
             visitor->visitStmt(*stmt);
         }
     }
 
+
     std::vector<std::unique_ptr<Stmt>> statements;
+    vector<unique_ptr<Decl>> declarations;
+
 };
 
 #endif

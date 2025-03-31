@@ -1,9 +1,9 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "ast.hpp"    // Your AST definitions
-#include "IMA.hpp"    // Contains the IMA(...) function
-#include "visitor.hpp"// Contains PrintVisitor
+#include "ast.hpp"   
+#include "IMA.hpp"    
+#include "PrintVisitor.hpp"
 
 using namespace std;
 
@@ -12,8 +12,15 @@ int main() {
     // 1. Build the client program AST.
     // -------------------------------
     vector<unique_ptr<Stmt>> stmts;
+    vector<unique_ptr<Decl>> decls;
+    //statemet 1: string username;
+    {
+        auto stringType = std::make_unique<TypeConst>("string");
+        auto userDecl = std::make_unique<Decl>("username", stringType->clone());
+        decls.push_back(move(userDecl));
+    }
 
-    // Statement 1: user = input(var)
+    // Statement 2: username = input(var)
     {
         auto lhs = make_unique<Var>("username");
         vector<unique_ptr<Expr>> inputArgs;
@@ -23,7 +30,15 @@ int main() {
         stmts.push_back(move(assignStmt));
     }
 
-    // Statement 2: pass = input(var)
+    // statement 3: string password;
+    {
+        auto stringType = std::make_unique<TypeConst>("string");
+        auto userDecl = std::make_unique<Decl>("password", stringType->clone());
+        decls.push_back(move(userDecl));
+
+    }
+
+    // Statement 4: password = input(var)
     {
         auto lhs = make_unique<Var>("password");
         vector<unique_ptr<Expr>> inputArgs;
@@ -42,7 +57,7 @@ int main() {
         auto signupStmt = make_unique<FuncCallStmt>(move(signupCall));
         stmts.push_back(move(signupStmt));
     }
-    Program clientProgram(move(stmts));
+    Program clientProgram(move(stmts),move(decls));
 
     // -------------------------------
     // 2. Build the API specification AST.
@@ -92,6 +107,13 @@ int main() {
     
 
     vector<unique_ptr<Init>> inits;
+   
+    std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> mapEntries;
+
+    auto MapExpr = std::make_unique<Map>(std::move(mapEntries));
+
+    inits.push_back(std::make_unique<Init>("U", std::move(MapExpr)));
+
 
     vector<unique_ptr<FuncDecl>> functions;
 

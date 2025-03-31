@@ -8,7 +8,7 @@
 #include <string>
 #include <memory>
 #include "ast.hpp"       // Your AST definitions (with deep copy support via clone())
-#include "visitor.hpp"   // Your visitor and PrintVisitor definitions
+#include "PrintVisitor.hpp"   // Your visitor and PrintVisitor definitions
 
 using namespace std;
 
@@ -268,8 +268,13 @@ Env createTau(const vector<string> &formalParams, const vector<string> &actualPa
  */
 Program IMA(const Program &p, const Spec &spec) {
     vector<unique_ptr<Stmt>> newStmts;
-    newStmts.reserve(p.statements.size());
-    
+    vector<unique_ptr<Decl>> declarations;
+    for (const auto &decl : spec.globals) {
+        declarations.push_back(decl->clone());
+    }
+    for(const auto &decl: p.declarations){
+        declarations.push_back(decl->clone());
+    }
     // Iterate over each statement in the program.
     for (auto &stmtPtr : p.statements) {
         auto fcStmt = dynamic_cast<FuncCallStmt*>(stmtPtr.get());
@@ -351,7 +356,7 @@ Program IMA(const Program &p, const Spec &spec) {
 
         
     }
-    return Program(move(newStmts));
+    return Program(move(newStmts),move(declarations));
 }
 
 #endif
