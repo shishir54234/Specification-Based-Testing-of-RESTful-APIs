@@ -11,8 +11,6 @@ void test_everything(){
 
     // register admin register student
     
-    
-    
     auto res=Entry::start();
     auto spec = std::move(res.first);
     auto symtable=res.second;
@@ -26,7 +24,7 @@ void test_everything(){
     p.accept(visitor);
     ExpoSECodeGenerator ecg;
 
-    cout<<"generating expoSE code:";
+    cout<<"generating expoSE code:\n";
     string code = ecg.generateCode(p);
     cout << code;
 }

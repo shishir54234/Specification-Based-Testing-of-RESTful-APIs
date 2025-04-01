@@ -1,1 +1,7 @@
 ExpoSE/*
+
+*.exe 
+*.gch
+*.o
+
+node_modules/

@@ -5,8 +5,8 @@
 #include <iostream>
 #include <cassert>
 #include <memory>
-#include "../ast.hpp"
-#include "../algo.hpp"
+#include "../../ast.hpp"
+#include "../../algo.hpp"
 class heavyexample1
 {
     public:
@@ -57,24 +57,24 @@ class heavyexample1
             //(t in T and T[t].id in U)
             and1params.push_back(move(in1));
             and1params.push_back(move(in2));
-            and1 = std::make_unique<FuncCall>("inMapVerify", move(and1params));
+            and1 = std::make_unique<FuncCall>("AND", move(and1params));
             //((ADMIN in T[t].role AND studentId in U) OR studentId = T[t].id)
             // T[t]
             accessMap2params.push_back(std::make_unique<Var>("T"));
             accessMap2params.push_back(std::make_unique<Var>("token"));
-            mapAcess2 = std::make_unique<FuncCall>("mapAcess", move(accessMap1params));
+            mapAcess2 = std::make_unique<FuncCall>("mapAcess", move(accessMap2params));
             // T[t].id
-            getId2params.push_back(std::move(mapAcess1));
-            getId2 = std::make_unique<FuncCall>("getId", move(getId1params));
+            getId2params.push_back(std::move(mapAcess2));
+            getId2 = std::make_unique<FuncCall>("getId", move(getId2params));
             // studentId = T[t].id
             equalsParams1.push_back(std::move(getId2));
             equalsParams1.push_back(std::make_unique<Var>("studentId"));
-            equals1 = std::make_unique<FuncCall>("getId", move(equalsParams1));
+            equals1 = std::make_unique<FuncCall>("equals", move(equalsParams1));
             // ##((ADMIN in T[t].role AND studentId in U)
             // T[t]
             accessMap3params.push_back(std::make_unique<Var>("T"));
             accessMap3params.push_back(std::make_unique<Var>("token"));
-            mapAccess3 = std::make_unique<FuncCall>("mapAcess", move(accessMap1params));
+            mapAccess3 = std::make_unique<FuncCall>("mapAcess", move(accessMap3params));
             // T[t].role
             getRoleParams1.push_back(std::move(mapAccess3));
             getRoles = std::make_unique<FuncCall>("getRoles", move(getRoleParams1));
@@ -89,7 +89,7 @@ class heavyexample1
             // (ADMIN in T[t].role AND studentId in U)
             and2Params.push_back(std::move(in3));
             and2Params.push_back(std::move(in4));
-            and2 = std::make_unique<FuncCall>("inMapVerify", move(and2Params));
+            and2 = std::make_unique<FuncCall>("AND", move(and2Params));
             //((ADMIN in T[t].role AND studentId in U) OR studentId = T[t].id)
             orParams1.push_back(std::move(and2));
             orParams1.push_back(std::move(equals1));
@@ -102,7 +102,7 @@ class heavyexample1
             //  pre_args = std::move(and3);
             //  call : getStudent(t : Token, studentId : string) ==> (OK, studentData: Student)
             vector<unique_ptr<Expr>> call_args1;
-            call_args1.push_back(std::make_unique<Var>("Token"));
+            call_args1.push_back(std::make_unique<Var>("token"));
             call_args1.push_back(std::make_unique<Var>("studentId"));
             auto call = std::make_unique<APIcall>(make_unique<FuncCall>("getStudent", move(call_args1)), Response(HTTPResponseCode::OK_200, std::make_unique<Var>("studentData"))); // to be fixed as student is of type var here
             // POSTCONDITION: studentId = studentData.id
@@ -110,7 +110,7 @@ class heavyexample1
             getId3Params.push_back(std::make_unique<Var>("studentData"));
             equalsParams2.push_back(std::make_unique<FuncCall>("getId", move(getId3Params)));
             equalsParams2.push_back(std::make_unique<Var>("studentId"));
-            equals2 = std::make_unique<FuncCall>("=", move(equalsParams2));
+            equals2 = std::make_unique<FuncCall>("equals", move(equalsParams2));
             // full api:
             auto api = std::make_unique<API>(std::move(and3), std::move(call), Response(HTTPResponseCode::OK_200, move(equals2)));
             apis.push_back(std::move(api));
