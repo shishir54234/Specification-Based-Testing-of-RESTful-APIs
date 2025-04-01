@@ -1,6 +1,5 @@
-
-#include <vector>
 #include <string>
+#include <vector>
 #include <memory>
 #include <utility>
 #include "ASTVis.hpp"
@@ -14,9 +13,7 @@ enum class HTTPResponseCode
 {
     OK_200,
     CREATED_201,
-    UNAUTHORIZED_401,
     BAD_REQUEST_400,
-
     // Add other response codes as needed
 };
 enum ExpressionType
@@ -159,13 +156,13 @@ public:
 
     void accept(Visitor *visitor)
     {
-        // for (auto &e : elements)
-        // {
-        //     // visitor->visitTypeExpr(*e);
-        // }
+        for (auto &e : elements)
+        {
+            // visitor->visitTypeExpr(*e);
+        }
     }
     // Clone implementation for TupleType
-    unique_ptr<TypeExpr> clone() const override
+    std::unique_ptr<TypeExpr> clone() const override
     {
         std::vector<std::unique_ptr<TypeExpr>> clonedElements;
         for (const auto &element : elements)
@@ -336,15 +333,14 @@ public:
 
 class String : public Expr
 {
-    public:
-    explicit String(string value) : Expr(ExpressionType::STRING),value(value) {}
-    void accept(ASTVisitor& visitor) const override {
+public:
+    explicit String(string value) : Expr(ExpressionType::STRING), value(value) {}
+    void accept(ASTVisitor &visitor) const override
+    {
         visitor.visit(*this);
     }
 
-
     string value;
-
 };
 
 class Set : public Expr
