@@ -13,6 +13,7 @@ enum class HTTPResponseCode
 {
     OK_200,
     CREATED_201,
+    BAD_REQUEST_400,
     // Add other response codes as needed
 };
 enum ExpressionType {

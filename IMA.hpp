@@ -278,6 +278,12 @@ Program IMA(const Program &p, const Spec &spec) {
     for(const auto &decl: p.declarations){
         declarations.push_back(decl->clone());
     }
+    for(const auto &inits: spec.init){ //here im assuming i wont be using init of specs again after. 
+        std::unique_ptr<Var> var = std::make_unique<Var>(inits->varName);
+        std::unique_ptr<Expr> expr = std::move(inits->expr);
+        newStmts.push_back(std::make_unique<Assign>(std::move(var), std::move(expr)));
+
+    }
     // Iterate over each statement in the program.
     for (auto &stmtPtr : p.statements) {
         auto fcStmt = dynamic_cast<FuncCallStmt*>(stmtPtr.get());

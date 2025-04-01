@@ -3,6 +3,13 @@ function input(symbolholder) {
     return S$.symbol(symbolholder, 'symbolic_variable'); 
 }
 
+function _in(key,collection){
+    return collection.has(key)
+}
+function dom(map) {
+    return new Set(map.keys()); // Returns a Set of keys
+}
+
 function not_in(key, collection) {
     return !collection.has(key);
 }
@@ -26,11 +33,3 @@ function signup(username, password) {
     console.log(`Signed up with username: ${username} and password: ${password}`);
 }
 
-// Simulates a mapping function (e.g., adding username-password to a Map)
-function mapping(username, password, U) {
-    U.set(username, password);
-    return U.has(username);
-}
-
-// Initialize the set U
-let U = new Set();
