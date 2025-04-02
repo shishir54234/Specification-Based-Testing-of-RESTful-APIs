@@ -168,6 +168,18 @@ void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
         return;
     }
 
+    if(f.name == "getStudent"){ //example of getRequest
+        string apiNumber = "1";// need to get it convertfunction again from atc
+        string apiUrl = "http://localhost:5000/getStudent"; //need to get it from atc
+        string comma_seperated_args = "arg1: 22, arg2: 22, arg3: 22"; //need to get this from the arguments
+        string list_of_args = "{" + comma_seperated_args + "}";
+        string call = "fetchData( \"" + apiUrl + "\" , " + list_of_args + ")";
+        string apicall = "var result" + apiNumber + " = " + call;
+        
+        strings.push(apicall);
+        return;
+    }
+
     strings.push(name + "(" + args + ")");
     // cout<<"exiting visit FuncCall"<<endl;
 }
@@ -256,7 +268,7 @@ void ExpoSEVisitor::visitSet(Set& s) {
 }
 
 void ExpoSEVisitor::visitInit(Init& i) {
-    // cout<<"init\n";
+    cout<<"init\n";
     i.accept(this);
     string varName = i.varName;
     string expression = pop(strings);
