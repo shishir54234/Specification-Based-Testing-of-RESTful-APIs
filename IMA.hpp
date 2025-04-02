@@ -264,14 +264,20 @@ Env createTau(const vector<string> &formalParams, const vector<string> &actualPa
     return env;
 }
 
+
 /**
  * IMA (Implicit Mocking Algorithm):
  * Transforms a client program by replacing API calls with a sequence:
  *   assume(pre[τ]), assignments for mutated variables (input()), and assert(post[τ]).
  */
+
+
 Program IMA(const Program &p, const Spec &spec) {
     vector<unique_ptr<Stmt>> newStmts;
     vector<unique_ptr<Decl>> declarations;
+
+    vector<unique_ptr<Program>> ProgramCodes;
+
     for (const auto &decl : spec.globals) {
         declarations.push_back(decl->clone());
     }
@@ -284,6 +290,7 @@ Program IMA(const Program &p, const Spec &spec) {
         newStmts.push_back(std::make_unique<Assign>(std::move(var), std::move(expr)));
 
     }
+
     // Iterate over each statement in the program.
     for (auto &stmtPtr : p.statements) {
         auto fcStmt = dynamic_cast<FuncCallStmt*>(stmtPtr.get());

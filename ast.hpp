@@ -212,6 +212,7 @@ class Expr
 public:
     virtual ~Expr() = default;
     virtual void accept(ASTVisitor& visitor) const = 0;
+
     ExpressionType expressionType;
 protected:
     Expr(ExpressionType exprType): expressionType(exprType) {}
@@ -260,7 +261,6 @@ public:
 
     void accept(Visitor* visitor){
     }
-
     std::string name;
 };
 
@@ -305,7 +305,6 @@ class String : public Expr
         visitor.visit(*this);
     }
 
-
     string value;
 
 };
@@ -341,6 +340,7 @@ public:
             visitor->visitExpr(*(v.second));
         }
     }
+
     std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> value;
 };
 
@@ -382,6 +382,8 @@ public:
         //     visitor->visitTypeExpr(*te);
         // }
     }
+
+    
     std::string name;
     std::vector<std::unique_ptr<TypeExpr>> params;
     std::pair<HTTPResponseCode, vector<std::unique_ptr<TypeExpr>>> returnType;
@@ -508,6 +510,7 @@ class Stmt
 public:
     virtual ~Stmt() = default;
     virtual void accept(ASTVisitor &visitor) const = 0;
+
     StatementType statementType;
 protected:
     Stmt(StatementType type) : statementType(type) {}
@@ -546,7 +549,7 @@ public:
     void accept(Visitor *visitor) {
        visitor->visitFuncCall(*call);
     }
-    
+
     std::unique_ptr<FuncCall> call;
 };
 
