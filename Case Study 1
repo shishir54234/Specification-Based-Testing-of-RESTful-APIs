@@ -67,9 +67,9 @@ POSTCONDITION: T' = T[token -> username]
 
 ### 4. Get All Students
 --------------------------------GETALLSTUDENTS_OK--------------------------------
-PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+PRECONDITION: (t in T and T[t].id in U) AND (ADMIN in T[t].role)
 getAllStudents(t : Token) ==> (OK, studentList: List[Student])
-POSTCONDITION: studentList contains all students
+POSTCONDITION: studentList = S  
 -----------------------------------------------------------------------------
 
 ---
@@ -85,7 +85,7 @@ POSTCONDITION: studentId = studentData.id
 
 ### 6. Delete Student
 --------------------------------DELETESTUDENT_OK--------------------------------
-PRECONDITION: (t -> u in T and u in U) AND (ADMIN in u.role)
+PRECONDITION: (t in T and T[t].id in U) AND ((ADMIN in T[t].role AND studentId in U) OR studentId = T[t].id)
 deleteStudent(t : Token, studentId : string) ==> (OK)
 POSTCONDITION: S' = S \ {studentId}
 -----------------------------------------------------------------------------
@@ -94,8 +94,8 @@ POSTCONDITION: S' = S \ {studentId}
 
 ### 7. Save Student Details
 --------------------------------SAVESTUDENT_OK--------------------------------
-PRECONDITION: (t -> u in T and u in U)
-saveStudent(t : Token, studentData : Student) ==> (OK)
+PRECONDITION: (t in T and T[t].id in U) 
+saveStudent(t : Token, studentData : Student) ==> (OK, studentData: Student)
 POSTCONDITION: S' = S[studentData.id -> studentData]
 -----------------------------------------------------------------------------
 

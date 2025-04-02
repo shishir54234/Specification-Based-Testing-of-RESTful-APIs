@@ -8,6 +8,9 @@
 // we have the globals here and we have the init here 
 // and we have the functions here and we have the blocks here
 #include "heavy_examples/1.hpp"
+#include "heavy_examples/2.hpp"
+#include "heavy_examples/3.hpp"
+#include "heavy_examples/4.hpp"
 #include "light_examples/1.hpp"
 #include "light_examples/2.hpp"
 #include "light_examples/3.hpp"
@@ -70,6 +73,9 @@ class Entry
         // lightexample2::example(apis, symtable);
         // lightexample3::example(apis, symtable);
         heavyexample1::example(apis, symtable);
+        heavyexample2::example(apis,symtable);
+        heavyexample3::example(apis,symtable);
+        heavyexample4::example(apis,symtable);
 
         auto spec = make_unique<Spec>(move(globals), move(inits), move(funcDecls), move(apis));
         return make_pair(std::move(spec), std::move(symtable));

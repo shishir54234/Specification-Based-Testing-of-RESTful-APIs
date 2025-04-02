@@ -34,7 +34,7 @@ export function _getStudent_(id, token) {
     console.log("Fetching student:", id);
 }
 
-async function fetchData(baseUrl, params = {}) {
+export async function fetchData(baseUrl, params = {}) {
     try {
         // Convert params object into query string
         const queryString = new URLSearchParams(params).toString();
