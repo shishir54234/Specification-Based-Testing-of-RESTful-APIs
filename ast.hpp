@@ -203,7 +203,8 @@ public:
     Decl(std::string name, std::unique_ptr<TypeExpr> typeExpr)
         : name(std::move(name)), type(std::move(typeExpr)) {}
     virtual ~Decl() = default;
-    virtual void accept(ASTVisitor &visitor) {
+    virtual void accept(ASTVisitor &visitor)
+    {
         visitor.visit(*this);
     }
 
@@ -234,7 +235,7 @@ class Expr
 {
 public:
     virtual ~Expr() = default;
-    virtual void accept(ASTVisitor& visitor) const = 0;
+    virtual void accept(ASTVisitor &visitor) const = 0;
 
     ExpressionType expressionType;
 
@@ -364,7 +365,11 @@ public:
 class Map : public Expr
 {
 public:
-    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : Expr(ExpressionType::MAP), value(std::move(value)) {}
+    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> entries)
+        : Expr(ExpressionType::MAP),
+          value(std::move(entries))
+    {
+    }
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -385,7 +390,13 @@ public:
 class Tuple : public Expr
 {
 public:
-    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : Expr(ExpressionType::TUPLE), expr(std::move(expr)) {}
+    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs)
+        : Expr(ExpressionType::TUPLE),
+          expr(move(exprs)) // ← CORRECT: move the ctor argument into the member
+    {
+    }
+    // vector<std::unique_ptr<Expr>> expr;
+
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -425,7 +436,6 @@ public:
         // }
     }
 
-    
     std::string name;
     std::vector<std::unique_ptr<TypeExpr>> params;
     std::pair<HTTPResponseCode, vector<std::unique_ptr<TypeExpr>>> returnType;
