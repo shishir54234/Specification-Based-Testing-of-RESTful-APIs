@@ -8,51 +8,94 @@
 
 namespace cloneHelper {
 
-// Helper function to clone an expression based on its dynamic type.
-inline std::unique_ptr<Expr> cloneExpr(const Expr &expr) {
+    // MAP,
+    // VAR,
+    // STRING,
+    // NUM,
+    // TUPLE,
+    // SET,
+    // FUNCTIONCALL_EXPR,
+    // POLYMORPHIC_FUNCTIONCALL_EXPR
+    // unique_ptr<Expr> &expr
+
+inline std::unique_ptr<Expr> clone(unique_ptr<Expr> &expr) {
     switch(expr.expressionType) {
         case ExpressionType::VAR: {
-            const Var* varPtr = dynamic_cast<const Var*>(&expr);
+            const Var* varPtr = dynamic_cast<const Var*>(expr.get());
             if (varPtr) {
                 return std::make_unique<Var>(varPtr->name);
             }
             break;
         }
         case ExpressionType::NUM: {
-            const Num* numPtr = dynamic_cast<const Num*>(&expr);
+            const Num* numPtr = dynamic_cast<const Num*>(expr.get());
             if (numPtr) {
                 return std::make_unique<Num>(numPtr->value);
             }
             break;
         }
         case ExpressionType::STRING: {
-            const String* strPtr = dynamic_cast<const String*>(&expr);
+            const String* strPtr = dynamic_cast<const String*>(expr.get());
             if (strPtr) {
                 return std::make_unique<String>(strPtr->value);
             }
             break;
         }
         case ExpressionType::FUNCTIONCALL_EXPR: {
-            const FuncCall* fcPtr = dynamic_cast<const FuncCall*>(&expr);
+            const FuncCall* fcPtr = dynamic_cast<const FuncCall*>(expr.get());
             if (fcPtr) {
-                // Call cloneFuncCall (defined below)
                 std::vector<std::unique_ptr<Expr>> clonedArgs;
                 for (const auto &arg : fcPtr->args) {
-                    clonedArgs.push_back(cloneExpr(*arg));
+                    clonedArgs.push_back(clone(*arg));
                 }
                 return std::make_unique<FuncCall>(fcPtr->name, std::move(clonedArgs));
             }
             break;
         }
-        // Add additional cases for other expression types as needed.
+        case ExpressionType::MAP: {
+            const Map* mpPtr = dynamic_cast<const Map*>(expr.get());
+            if(mpPtr) {
+                std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> clonedvalue;
+                for(const auto &values: mpPtr->value){
+                    const Var* first = clone(values.first);
+                    const Expr* second = clone(values.second);
+
+                    clonedvalue.push_back({first,second});
+                }
+
+                return std::make_unique<Map>(std::move(clonedvalue));
+            }
+            break;
+        }
+        case ExpressionType::SET: {
+            const Set* setPtr = dynamic_cast<const Set*>(expr.get());
+            if(setPtr){
+                std::vector<std::unique_ptr<Expr>> clonedelements;
+                for(const auto &value:setPtr->elements){
+                    clonedelements.push_back(clone(value));
+                }
+                return std::make_unique<Set>(std::move(clonedvalue));
+            }
+            break;
+        }
+        case ExpressionType::TUPLE: {
+            const Tuple* tupplePtr = dynamic_cast<const Tuple*>(expr.get());
+            if(tupplePtr){
+                std::vector<std::unique_ptr<Expr>> clonedexpr;
+                for(const auto &value:tupplePtr->expr){
+                    clonedelements.push_back(clone(value));
+                }
+            }
+            break;  
+        }
         default:
             break;
     }
     return nullptr;
 }
 
-// Helper function to clone a function call (used within expressions and statements)
-inline std::unique_ptr<FuncCall> cloneFuncCall(const FuncCall &funcCall) {
+
+inline std::unique_ptr<FuncCall> clone(const FuncCall &funcCall) {
     std::vector<std::unique_ptr<Expr>> clonedArgs;
     for (const auto &arg : funcCall.args) {
         clonedArgs.push_back(cloneExpr(*arg));
@@ -60,7 +103,7 @@ inline std::unique_ptr<FuncCall> cloneFuncCall(const FuncCall &funcCall) {
     return std::make_unique<FuncCall>(funcCall.name, std::move(clonedArgs));
 }
 
-// Helper function to clone a statement based on its type.
+
 inline std::unique_ptr<Stmt> cloneStmt(const Stmt &stmt) {
     switch(stmt.statementType) {
         case StatementType::ASSIGN: {
@@ -81,7 +124,7 @@ inline std::unique_ptr<Stmt> cloneStmt(const Stmt &stmt) {
             }
             break;
         }
-        // If you add more statement types (e.g., DECL), add their cloning logic here.
+       
         default:
             break;
     }

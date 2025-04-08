@@ -184,7 +184,6 @@ public:
         : name(std::move(name)), type(std::move(typeExpr)) {}
     virtual ~Decl() = default;
     virtual void accept(ASTVisitor &visitor) {
-        // cout<<"hey\n";
         visitor.visit(*this);
     }
 
