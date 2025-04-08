@@ -48,7 +48,7 @@ class Visitor {
     public:
         // virtual string string_of_type();
         // virtual void visitHTTPResponseCode(HTTPResponseCode);
-        // virtual void visitDecl(Decl&);
+        virtual void visitDecl(Decl&);
         // virtual void visitfunDecl(fundecl&);
         // virtual void visitTypeExpr(TypeExpr&);
         // virtual void visitTypeConst(TypeConst&);
@@ -84,7 +84,7 @@ class ExpoSEVisitor : public Visitor {
     public:
         // virtual string string_of_type();
         // virtual void visitHTTPResponseCode(HTTPResponseCode);
-        // virtual void visitDecl(Decl&);
+        virtual void visitDecl(Decl&);
         // virtual void visitfunDecl(fundecl&);
         // virtual void visitTypeExpr(TypeExpr&);
         // virtual void visitTypeConst(TypeConst&);
