@@ -10,16 +10,20 @@ using namespace std;
 #include "PrintVisitor.hpp"
 #ifndef ALGO_HPP
 #define ALGO_HPP
-class SymbolTable{
-    public:
-    vector<SymbolTable*> children;
-    SymbolTable* par;
+class SymbolTable
+{
+public:
+    vector<SymbolTable *> children;
+    SymbolTable *par;
     set<Var> symtable;
-    bool exists(Var v){
-        if(symtable.find(v)==symtable.end()){
+    bool exists(Var v)
+    {
+        if (symtable.find(v) == symtable.end())
+        {
             return false;
         }
-        else {
+        else
+        {
             return true;
         }
     }
@@ -44,7 +48,7 @@ unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const s
 
     if (auto var = dynamic_cast<Var *>(expr.get()))
     {
-        
+
         if (symtable->exists(*var))
         {
             // cout <<"1"<< var->name << endl;
@@ -84,9 +88,9 @@ unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const s
         vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> ret;
         for (int i = 0; i < map->value.size(); i++)
         {
-            auto key = convert1(reinterpret_cast<unique_ptr<Expr>&>(map->value[i].first), symtable, add);
+            auto key = convert1(reinterpret_cast<unique_ptr<Expr> &>(map->value[i].first), symtable, add);
             auto value = convert1(map->value[i].second, symtable, add);
-            ret.push_back(make_pair(std::move(reinterpret_cast<unique_ptr<Var>&>(key)), std::move(value)));
+            ret.push_back(make_pair(std::move(reinterpret_cast<unique_ptr<Var> &>(key)), std::move(value)));
         }
         return make_unique<Map>(std::move(ret));
     }
@@ -271,7 +275,7 @@ unique_ptr<FuncCallStmt> makeStmt(unique_ptr<Expr> expr)
     {
         vector<unique_ptr<Expr>> args;
         args.push_back(make_unique<Var>(call->name));
-        auto h=make_unique<FuncCall>("input", move(args));
+        auto h = make_unique<FuncCall>("input", move(args));
         return make_unique<FuncCallStmt>(std::move(h));
     }
     return nullptr;
@@ -287,29 +291,37 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
         InputVariables.push_back(convert1(expr,symtable,toadd));
         return;
     }
-    if (auto func = dynamic_cast<FuncCall *>(expr.get())){
-        for(auto &arg:func->args){
-            getInputVars(arg,InputVariables,toadd,symtable);
+    if (auto func = dynamic_cast<FuncCall *>(expr.get()))
+    {
+        for (auto &arg : func->args)
+        {
+            getInputVars(arg, InputVariables, toadd, symtable);
         }
     }
-    if(auto set=dynamic_cast<Set *>(expr.get())){
-        for(auto &element:set->elements){
-            getInputVars(element,InputVariables,toadd,symtable);
-        }   
+    if (auto set = dynamic_cast<Set *>(expr.get()))
+    {
+        for (auto &element : set->elements)
+        {
+            getInputVars(element, InputVariables, toadd, symtable);
+        }
     }
     if (auto tuple = dynamic_cast<Tuple *>(expr.get()))
     {
-        for(auto &exp:tuple->expr){
-            getInputVars(exp,InputVariables,toadd,symtable);
+        for (auto &exp : tuple->expr)
+        {
+            getInputVars(exp, InputVariables, toadd, symtable);
         }
     }
-    if(auto map1=dynamic_cast<Map *>(expr.get())){
-        for(auto &element:map1->value){
-            getInputVars(reinterpret_cast<unique_ptr<Expr>&>(element.first), InputVariables, toadd, symtable);
-            getInputVars(element.second,InputVariables,toadd,symtable);
+    if (auto map1 = dynamic_cast<Map *>(expr.get()))
+    {
+        for (auto &element : map1->value)
+        {
+            getInputVars(reinterpret_cast<unique_ptr<Expr> &>(element.first), InputVariables, toadd, symtable);
+            getInputVars(element.second, InputVariables, toadd, symtable);
         }
     }
-    if(auto num=dynamic_cast<Num *>(expr.get())){
+    if (auto num = dynamic_cast<Num *>(expr.get()))
+    {
         return;
     }
 }
@@ -339,7 +351,8 @@ Program convert(const Spec *apispec, SymbolTable symtable){
 
         // This section sees to that the input variables are made into appropriate statements 
         vector<unique_ptr<Expr>> InputVariables;
-        for(int j=0;j<call->call->args.size();j++){
+        for (int j = 0; j < call->call->args.size(); j++)
+        {
             getInputVars(call->call->args[j], InputVariables, to_string(i), currtable);
         }
         // Making Statements for the input variables 
@@ -372,7 +385,7 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         vector<unique_ptr<Expr>> v1;v1.push_back(std::move(pre1));
         // Making the Precondition Statement 
         unique_ptr<FuncCall> p2 = make_unique<FuncCall>("assume", std::move(v1));
-        unique_ptr<FuncCallStmt> c2=make_unique<FuncCallStmt>(move(p2));
+        unique_ptr<FuncCallStmt> c2 = make_unique<FuncCallStmt>(move(p2));
         program_stmts.push_back(std::move(c2));
         
         // Making statemnents for the variables with a dash 
@@ -413,7 +426,7 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         program_stmts.push_back(std::move(c3));
         cout<<"The program statement sizes"<<program_stmts.size()<<"\n";
     }
-    
+
     return Program(std::move(program_stmts));
 }
 
