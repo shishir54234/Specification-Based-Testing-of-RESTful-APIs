@@ -244,37 +244,38 @@ public:
 protected:
     Expr(ExpressionType exprType) : expressionType(exprType) {}
 };
-class PolymorphicFuncCall : public Expr
-{
-public:
-    PolymorphicFuncCall(
-        std::string name,
-        std::vector<std::unique_ptr<TypeExpr>> typeArgs,
-        std::vector<std::unique_ptr<Expr>> args) : Expr(ExpressionType::POLYMORPHIC_FUNCTIONCALL_EXPR), name(std::move(name)),
-                                                   typeArgs(std::move(typeArgs)),
-                                                   args(std::move(args)) {}
+// class PolymorphicFuncCall : public Expr
+// {
+// public:
+//     PolymorphicFuncCall(
+//         std::string name,
+//         std::vector<std::unique_ptr<TypeExpr>> typeArgs,
+//         std::vector<std::unique_ptr<Expr>> args) : 
+//         Expr(ExpressionType::POLYMORPHIC_FUNCTIONCALL_EXPR), name(std::move(name)),
+//                                                    typeArgs(std::move(typeArgs)),
+//                                                    args(std::move(args)) {}
 
-//     std::string name;                                // Name of the polymorphic function
-//     std::vector<std::unique_ptr<TypeExpr>> typeArgs; // Type arguments for polymorphism
-//     std::vector<std::unique_ptr<Expr>> args;         // Regular arguments
-//     void accept(ASTVisitor &visitor) const override
+// //     std::string name;                                // Name of the polymorphic function
+// //     std::vector<std::unique_ptr<TypeExpr>> typeArgs; // Type arguments for polymorphism
+// //     std::vector<std::unique_ptr<Expr>> args;         // Regular arguments
+// //     void accept(ASTVisitor &visitor) const override
+// //     {
+// //         visitor.visit(*this);
+// //     }
+
+//     void accept(Visitor *visitor)
 //     {
-//         visitor.visit(*this);
+//         for (auto &typeArg : typeArgs)
+//         {
+//             // visitor->visitTypeExpr(*typeArg);
+//         }
+
+//         for (auto &arg : args)
+//         {
+//             visitor->visitExpr(*arg);
+//         }
 //     }
-
-    void accept(Visitor *visitor)
-    {
-        for (auto &typeArg : typeArgs)
-        {
-            // visitor->visitTypeExpr(*typeArg);
-        }
-
-        for (auto &arg : args)
-        {
-            visitor->visitExpr(*arg);
-        }
-    }
-};
+// };
 class Var : public Expr
 {
 public:
