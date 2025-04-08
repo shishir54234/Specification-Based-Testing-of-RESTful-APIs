@@ -224,18 +224,6 @@ public:
         indent--;
     }
 
-    // void visit(const RecordDecl &node)
-    // {
-    //     printIndent();
-    //     std::cout << "Record Declaration: " << node.recname << "\n";
-    //     indent++;
-    //     for (const auto &field : node.fields)
-    //     {
-    //         visit(*field);
-    //     }
-    //     indent--;
-    // }
-
     // API and Related visitors
     void visit(const APIcall &node) override
     {

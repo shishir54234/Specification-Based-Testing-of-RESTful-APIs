@@ -1,8 +1,8 @@
 // #include <iostream>
 // #include <memory>
 // #include <vector>
-// #include "ast.hpp"
-// #include "IMA.hpp"
+// #include "ast.hpp"   
+// #include "IMA.hpp"    
 // #include "PrintVisitor.hpp"
 // #include "jsCodeGen.hpp"
 
@@ -90,7 +90,7 @@
 
 //     // Create the API Block
 //     auto apiBlock = make_unique<API>(
-//         std::move(precondition),
+//         std::move(precondition), 
 //         std::move(apiCall),
 //         std::move(response)
 //     );
@@ -100,51 +100,54 @@
 
 //     auto domain = std::make_unique<TypeConst>("string");
 //     auto range = std::make_unique<TypeConst>("string");
-
+    
 //     auto mapType = std::make_unique<MapType>(std::move(domain), std::move(range));
-
+    
 //     // Create a unique_ptr<Decl> and store it in globals
 //     globals.push_back(std::make_unique<Decl>("U", std::move(mapType)));
+    
 
 //     vector<unique_ptr<Init>> inits;
-
+   
 //     std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> mapEntries;
 
 //     auto MapExpr = std::make_unique<Map>(std::move(mapEntries));
 
 //     inits.push_back(std::make_unique<Init>("U", std::move(MapExpr)));
 
+
 //     vector<unique_ptr<FuncDecl>> functions;
 
 //     auto usernameType = std::make_unique<TypeConst>("string");
 //     auto passwordType = std::make_unique<TypeConst>("string");
-
+    
 //     std::vector<std::unique_ptr<TypeExpr>> params;
 //     params.push_back(std::move(usernameType));
 //     params.push_back(std::move(passwordType));
-
+    
 //     // Step 2: Define return type (HTTP CREATED_201 + string response)
 //     auto returnType = std::make_unique<TypeConst>("string");
 //     std::vector<std::unique_ptr<TypeExpr>> returnTypes;
 //     returnTypes.push_back(std::move(returnType));
-
+    
 //     // Step 3: Create the FuncDecl for signup as a unique_ptr
 //     auto signup = std::make_unique<FuncDecl>(
 //         "signup",
 //         std::move(params),
 //         std::make_pair(HTTPResponseCode::CREATED_201, std::move(returnTypes))
 //     );
-
+    
 //     // Step 4: Add to the vector
 //     functions.push_back(std::move(signup));
+    
 
 //     vector<unique_ptr<API>> apiBlocks;
 //     apiBlocks.push_back(std::move(apiBlock));
 
 //     Spec spec(
-//         move(globals),
-//         move(inits),
-//         move(functions),
+//         move(globals), 
+//         move(inits), 
+//         move(functions), 
 //         move(apiBlocks)
 //     );
 
@@ -159,6 +162,7 @@
 //     jsCodeGen printer;
 //     transformed.accept(printer);
 
+
 //     return 0;
 // }
 
@@ -169,7 +173,6 @@
 #include "IMA.hpp"
 #include "PrintVisitor.hpp"
 #include "jsCodeGen.hpp"
-
 using namespace std;
 
 // Four API blocks are defined :
@@ -233,6 +236,45 @@ int main()
     {
         auto stringType = make_unique<TypeConst>("string");
         auto passDecl = make_unique<Decl>("password", stringType->clone());
+        decls.push_back(move(passDecl));
+    }
+        // Declare variable: string username;
+    {
+        auto stringType = make_unique<TypeConst>("string");
+        auto userDecl = make_unique<Decl>("username2", stringType->clone());
+        decls.push_back(move(userDecl));
+    }
+
+    // Declare variable: string password;
+    {
+        auto stringType = make_unique<TypeConst>("string");
+        auto passDecl = make_unique<Decl>("password2", stringType->clone());
+        decls.push_back(move(passDecl));
+    }
+        // Declare variable: string username;
+    {
+        auto stringType = make_unique<TypeConst>("string");
+        auto userDecl = make_unique<Decl>("username3", stringType->clone());
+        decls.push_back(move(userDecl));
+    }
+
+    // Declare variable: string password;
+    {
+        auto stringType = make_unique<TypeConst>("string");
+        auto passDecl = make_unique<Decl>("password3", stringType->clone());
+        decls.push_back(move(passDecl));
+    }
+        // Declare variable: string username;
+    {
+        auto stringType = make_unique<TypeConst>("string");
+        auto userDecl = make_unique<Decl>("username4", stringType->clone());
+        decls.push_back(move(userDecl));
+    }
+
+    // Declare variable: string password;
+    {
+        auto stringType = make_unique<TypeConst>("string");
+        auto passDecl = make_unique<Decl>("password4", stringType->clone());
         decls.push_back(move(passDecl));
     }
 
@@ -342,9 +384,9 @@ int main()
         vector<unique_ptr<Expr>> args;
         args.push_back(make_unique<Var>("username4"));
         args.push_back(make_unique<Var>("password4"));
-        auto loginSuccessCall = make_unique<FuncCall>("login_success", move(args));
-        auto loginSuccessStmt = make_unique<FuncCallStmt>(move(loginSuccessCall));
-        stmts.push_back(move(loginSuccessStmt));
+        auto apicall = make_unique<FuncCall>("login", move(args));
+        auto apistmt = make_unique<FuncCallStmt>(move(apicall));
+        stmts.push_back(move(apistmt));
     }
 
     Program clientProgram(move(stmts), move(decls));
@@ -501,6 +543,5 @@ int main()
     Program transformed = IMA(clientProgram, spec);
     jsCodeGen printer;
     transformed.accept(printer);
-
     return 0;
 }

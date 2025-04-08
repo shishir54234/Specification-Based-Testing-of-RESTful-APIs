@@ -203,9 +203,7 @@ public:
     Decl(std::string name, std::unique_ptr<TypeExpr> typeExpr)
         : name(std::move(name)), type(std::move(typeExpr)) {}
     virtual ~Decl() = default;
-    virtual void accept(ASTVisitor &visitor)
-    {
-        // cout<<"hey\n";
+    virtual void accept(ASTVisitor &visitor) {
         visitor.visit(*this);
     }
 
@@ -236,7 +234,8 @@ class Expr
 {
 public:
     virtual ~Expr() = default;
-    virtual void accept(ASTVisitor &visitor) const = 0;
+    virtual void accept(ASTVisitor& visitor) const = 0;
+
     ExpressionType expressionType;
 
 protected:
@@ -289,7 +288,6 @@ public:
     void accept(Visitor *visitor)
     {
     }
-
     std::string name;
 };
 
@@ -380,6 +378,7 @@ public:
             visitor->visitExpr(*(v.second));
         }
     }
+
     std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> value;
 };
 
@@ -425,6 +424,8 @@ public:
         //     visitor->visitTypeExpr(*te);
         // }
     }
+
+    
     std::string name;
     std::vector<std::unique_ptr<TypeExpr>> params;
     std::pair<HTTPResponseCode, vector<std::unique_ptr<TypeExpr>>> returnType;
@@ -557,6 +558,7 @@ class Stmt
 public:
     virtual ~Stmt() = default;
     virtual void accept(ASTVisitor &visitor) const = 0;
+
     StatementType statementType;
 
 protected:
