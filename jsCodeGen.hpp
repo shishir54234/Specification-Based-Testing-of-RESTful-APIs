@@ -103,10 +103,17 @@ public:
     {
         std::cout <<node.name;
     }
+<<<<<<< HEAD
     void visit(const String &node) override
     {
         std::cout <<  quoted(node.value) ;
     }
+=======
+    // void visit(const String &node) override
+    // {
+    //     std::cout <<  quoted(node.value) ;
+    // }
+>>>>>>> 9b3469051fc3e1324865f31fd6263d55e6d35e4e
 
     void visit(const FuncCall &node) override
     {
@@ -163,6 +170,7 @@ public:
     }
     
 
+<<<<<<< HEAD
     void visit(const PolymorphicFuncCall &node) override
     {
         printIndent();
@@ -189,6 +197,34 @@ public:
 
         indent--;
     }
+=======
+    // void visit(const PolymorphicFuncCall &node) override
+    // {
+    //     printIndent();
+    //     std::cout << "PolymorphicFuncCall: " << node.name << "\n";
+    //     indent++;
+
+    //     printIndent();
+    //     std::cout << "Type Arguments:\n";
+    //     indent++;
+    //     for (const auto &typeArg : node.typeArgs)
+    //     {
+    //         typeArg->accept(*this);
+    //     }
+    //     indent--;
+
+    //     printIndent();
+    //     std::cout << "Arguments:\n";
+    //     indent++;
+    //     for (const auto &arg : node.args)
+    //     {
+    //         arg->accept(*this);
+    //     }
+    //     indent--;
+
+    //     indent--;
+    // }
+>>>>>>> 9b3469051fc3e1324865f31fd6263d55e6d35e4e
 
     // Declaration visitors
     void visit(const Decl &node) override
@@ -224,6 +260,21 @@ public:
         indent--;
     }
 
+<<<<<<< HEAD
+=======
+    // void visit(const RecordDecl &node)
+    // {
+    //     printIndent();
+    //     std::cout << "Record Declaration: " << node.recname << "\n";
+    //     indent++;
+    //     for (const auto &field : node.fields)
+    //     {
+    //         visit(*field);
+    //     }
+    //     indent--;
+    // }
+
+>>>>>>> 9b3469051fc3e1324865f31fd6263d55e6d35e4e
     // API and Related visitors
     void visit(const APIcall &node) override
     {
@@ -366,9 +417,15 @@ public:
     }
     void visit(const Program &node) override{
         std:: cout << "const S$ = require('S$');"<<"\n";
+<<<<<<< HEAD
         for(const auto &decls: node.declarations){
             decls.get()->accept(*this);
         }
+=======
+        // for(const auto &decls: node.declarations){
+        //     decls.get()->accept(*this);
+        // }
+>>>>>>> 9b3469051fc3e1324865f31fd6263d55e6d35e4e
         for (const auto &func : node.statements)
         {
             func.get()->accept(*this);

@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add executable
 add_executable(ast_tests
     ast.hpp
-    visitor.hpp
+    PrintVisitor.hpp
     ASTVis.hpp
     atc_ast.hpp
     ast_tests.cpp

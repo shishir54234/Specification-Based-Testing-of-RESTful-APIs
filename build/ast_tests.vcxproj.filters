@@ -9,7 +9,7 @@
     <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\ast.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\visitor.hpp">
+    <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\PrintVisitor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\shahi\Downloads\assingnment4\assingnment4\ASTVis.hpp">

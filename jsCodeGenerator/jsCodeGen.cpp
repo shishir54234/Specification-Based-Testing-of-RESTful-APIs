@@ -99,28 +99,34 @@ void ExpoSEVisitor::visitExpr(Expr& e) {
 // }
 
 void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
+    // cout<<"reached visit FuncCallStmt"<<endl;
     f.accept(this);
+    // cout<<"finished visit FuncCallStmt"<<endl;;
     string fcall = pop(strings);
     strings.push(fcall + ";");
 }
 
 
 void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
+    // cout<<"enterred visit FuncCall"<<endl;
+    // cout<<"Function Name: "<<f.name<<endl;
     f.accept(this);
 
     vector<string> arguments;
     string name = f.name;
+
+    // cout<<"Function Name: "<<f.name<<endl;
 
     string args = "";
     for(auto& arg : f.args) {
         string argstr = pop(strings);
         arguments.push_back(argstr);
         args += argstr + ",";
+        // cout<<argstr<<" ";
     }
+    // cout<<endl;
     args.pop_back();
 
-
-    // cout<<"Function Name"<<f.name<<endl;
     if(f.name == "assume"){
         name = "S$.assume";
     }
@@ -162,7 +168,20 @@ void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
         return;
     }
 
+    if(f.name == "getStudent"){ //example of getRequest
+        string apiNumber = "1";// need to get it convertfunction again from atc
+        string apiUrl = "http://localhost:5000/getStudent"; //need to get it from atc
+        string comma_seperated_args = "arg1: 22, arg2: 22, arg3: 22"; //need to get this from the arguments
+        string list_of_args = "{" + comma_seperated_args + "}";
+        string call = "fetchData( \"" + apiUrl + "\" , " + list_of_args + ")";
+        string apicall = "var result" + apiNumber + " = " + call;
+        
+        strings.push(apicall);
+        return;
+    }
+
     strings.push(name + "(" + args + ")");
+    // cout<<"exiting visit FuncCall"<<endl;
 }
 CodeGenerator::~CodeGenerator() {
     delete visitor;
@@ -181,6 +200,7 @@ string Visitor::retrieve() {
 
 
 void ExpoSEVisitor::visitStmt(Stmt& s) {
+    // cout<<"reached visit Stmt";
     switch (s.statementType)
     {
     case StatementType::ASSIGN:
@@ -196,6 +216,7 @@ void ExpoSEVisitor::visitStmt(Stmt& s) {
 // ExpoSEVisitor::~ExpoSEVisitor() {}
 
 void ExpoSEVisitor::visitAssign(Assign& a) {
+    // cout<<"reached visit Assign";
     a.accept(this);
     string v1 = pop(strings);
     string exp1 = pop(strings);
@@ -219,6 +240,7 @@ void ExpoSEVisitor::visitNum(Num& n) {
 }
 
 void ExpoSEVisitor :: visitProgram(Program& program) {
+    // cout<<"entered visit Program";
     program.accept(this);
     string resultantProgram;
     while(!strings.empty()) {
@@ -234,7 +256,7 @@ void ExpoSEVisitor :: visitProgram(Program& program) {
 // }
 
 void ExpoSEVisitor::visitMap(Map& m) {
-    cout<<"map\n";
+    // cout<<"map\n";
     // m.accept(this);
     string map_decl = "new Map();";
     strings.push(map_decl);

@@ -4,7 +4,10 @@
 #include <utility>
 #include "ASTVis.hpp"
 #include "jsCodeGenerator/visitor.h"
+// --------------------- PLEASE READ THIS BEFORE PROCEEDING ---------------------------------------
 
+// ASTvisitor ====> virtual class, printervisitor==> implementation of AST visitor and is used to convert the whole thing into a string 
+// Visitor Class for jsCode generation.
 using namespace std;
 #ifndef AST_HPP
 #define AST_HPP
@@ -251,13 +254,13 @@ public:
                                                    typeArgs(std::move(typeArgs)),
                                                    args(std::move(args)) {}
 
-    std::string name;                                // Name of the polymorphic function
-    std::vector<std::unique_ptr<TypeExpr>> typeArgs; // Type arguments for polymorphism
-    std::vector<std::unique_ptr<Expr>> args;         // Regular arguments
-    void accept(ASTVisitor &visitor) const override
-    {
-        visitor.visit(*this);
-    }
+//     std::string name;                                // Name of the polymorphic function
+//     std::vector<std::unique_ptr<TypeExpr>> typeArgs; // Type arguments for polymorphism
+//     std::vector<std::unique_ptr<Expr>> args;         // Regular arguments
+//     void accept(ASTVisitor &visitor) const override
+//     {
+//         visitor.visit(*this);
+//     }
 
     void accept(Visitor *visitor)
     {
@@ -420,9 +423,9 @@ public:
         //     visitor->visitTypeExpr(*param);
         // }
         // visitor->visitHTTPResponseCode(returnType.first);
-        // for(auto& te: returnType.second){
-        //     visitor->visitTypeExpr(*te);
-        // }
+        for(auto& te: returnType.second){
+            // visitor->visitTypeExpr(*te);
+        }
     }
 
     
@@ -533,17 +536,17 @@ public:
         //     visitor->visitDecl(*global);
         // }
 
-        // for(auto& i: init){
-        //     visitor->visitInit(*i);
-        // }
+        for(auto& i: init){
+            visitor->visitInit(*i);
+        }
 
-        // for(auto& function: functions){
-        //     visitor->visitFuncDecl(*function);
-        // }
+        for(auto& function: functions){
+            // visitor->visitFuncDecl(*function);
+        }
 
-        // for(auto& block: blocks){
-        //     visitor->visitAPI(*block);
-        // }
+        for(auto& block: blocks){
+            // visitor->visitAPI(*block);
+        }
     }
 
     std::vector<std::unique_ptr<Decl>> globals;

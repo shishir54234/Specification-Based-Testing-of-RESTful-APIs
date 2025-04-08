@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <memory>
-#include "visitor.hpp"
+#include "PrintVisitor.hpp"
 #include "algo.hpp"
 using namespace std;
 // Assuming the AST classes are in "ast.hpp"
@@ -98,6 +98,11 @@ void testEverything(){
     sym1.symtable.insert(Var("username"));
     sym1.symtable.insert(Var("password"));
     symtable.children.push_back(&sym1);
+    SymbolTable sym2;
+    sym2.symtable.insert(Var("username"));
+    sym2.symtable.insert(Var("password"));
+    symtable.children.push_back(&sym2);
+
     Program p = convert(spec.get(), symtable);
     PrintVisitor visitor1;
     p.accept(visitor1);
