@@ -35,6 +35,15 @@ class SymbolTable{
         return s;
     }
 };
+class TypeMap
+{
+   public:
+    TypeMap* par;
+    vector<TypeMap *> children;
+    // Mapping from a variable name to its type 
+    map<string, Decl> mapping;
+};
+// linear
 unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const string &add)
 {
     if (!expr)
@@ -47,10 +56,8 @@ unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const s
         
         if (symtable->exists(*var))
         {
-            // cout <<"1"<< var->name << endl;
             return make_unique<Var>(var->name + add);
         }
-        // cout <<"0"<< var->name << endl;
         return make_unique<Var>(var->name);
     }
 
@@ -104,11 +111,6 @@ unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const s
     // Handle unknown expression type
     // throw runtime_error("Unknown expression type in convert function");
 }
-// U' = U union {}
-// ===>
-// U_old= U
-// api call
-// U= U_old union {}
 void addthedashexpr(unique_ptr<Expr> &expr, set<string> &res){
     if (!expr)
     {
@@ -136,7 +138,6 @@ void addthedashexpr(unique_ptr<Expr> &expr, set<string> &res){
             if (auto var = dynamic_cast<Var *>(v)) {
                 res.insert(var->name);
             }
-            
         }
         else{
             vector<unique_ptr<Expr>> args;
@@ -183,9 +184,6 @@ void addthedashexpr(unique_ptr<Expr> &expr, set<string> &res){
         }
         return;
     }
-    cout<<"WHAT YOU DIDNT HANDLE THIS ????"<<endl;
-    // // Handle unknown expression type
-    // throw runtime_error("Unknown expression type in convert function");
 }
 unique_ptr<Expr> removethedashexpr(unique_ptr<Expr>&expr, set<string> &res, int flag=0)
 {
@@ -327,13 +325,13 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         // take the current block its pre condition somewhere, 
         //its post condition somewhere, and its call, response also in variables 
         auto currblock = std::move(const_cast<std::unique_ptr<API>&>(apispec->blocks[i]));
-        cout<<"MI \n"; 
+       
         auto pre=std::move(currblock->pre);
-        cout<<"MI \n"; 
+        
         auto call=std::move(currblock->call);
-        cout<<"MI \n"; 
+         
         auto response=std::move(currblock->response);
-        cout<<"MI \n"; 
+        
         auto post = std::move(response.expr);
         
 

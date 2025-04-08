@@ -163,7 +163,7 @@ public:
     std::unique_ptr<TypeExpr> elementType;
 };
 
-// Expressions
+// Expressions = A U B
 class Expr
 {
 public:
