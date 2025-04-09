@@ -4,6 +4,7 @@
 #include "../../ast.hpp"
 #include "../../IMA.hpp"
 #include "../../PrintVisitor.hpp"
+#include "../../jsCodeGen.hpp"
 
 using namespace std;
 
@@ -369,20 +370,111 @@ int main()
     // -------------------------------
     vector<unique_ptr<Decl>> globals;
 
-    auto domain = make_unique<TypeConst>("string");
-    auto range = make_unique<TypeConst>("string");
+    // U: username → password
+    globals.push_back(make_unique<Decl>(
+        "U",
+        make_unique<MapType>(
+            make_unique<TypeConst>("string"),
+            make_unique<TypeConst>("string"))));
 
-    auto mapTypeU = make_unique<MapType>(move(domain), make_unique<TypeConst>("string"));
-    auto mapTypeT = make_unique<MapType>(make_unique<TypeConst>("string"), make_unique<TypeConst>("string"));
-    auto token = make_unique<TypeConst>("string");
+    // T: username → token
+    globals.push_back(make_unique<Decl>(
+        "T",
+        make_unique<MapType>(
+            make_unique<TypeConst>("string"),
+            make_unique<TypeConst>("string"))));
 
-    globals.push_back(make_unique<Decl>("U", move(mapTypeU)));
-    globals.push_back(make_unique<Decl>("T", move(mapTypeT)));
-    globals.push_back(make_unique<Decl>("token", move(token)));
+    // ProductIdMap: productId → ProductObject
+    // where ProductObject is Tuple(name:string, description:string, price:int, sellerId:string, category:string)
+    vector<unique_ptr<TypeExpr>> prodFields;
+    prodFields.push_back(make_unique<TypeConst>("string")); // name
+    prodFields.push_back(make_unique<TypeConst>("string")); // description
+    prodFields.push_back(make_unique<TypeConst>("int"));    // price
+    prodFields.push_back(make_unique<TypeConst>("string")); // sellerId
+    prodFields.push_back(make_unique<TypeConst>("string")); // category
+    auto tupleTypeProd = make_unique<TupleType>(move(prodFields));
 
+    globals.push_back(make_unique<Decl>(
+        "ProductIdMap",
+        make_unique<MapType>(
+            make_unique<TypeConst>("string"), // productId
+            move(tupleTypeProd)               // ProductObject tuple type
+            )));
+
+    // --- NEW: Wishlist: username → Tuple(productId1, productId2, …) ---
+    {
+        vector<unique_ptr<TypeExpr>> tupleElems;
+        tupleElems.push_back(make_unique<TypeConst>("string"));
+        auto tupleType = make_unique<TupleType>(std::move(tupleElems));
+        auto mapType = make_unique<MapType>(
+            make_unique<TypeConst>("string"),
+            std::move(tupleType));
+        globals.push_back(make_unique<Decl>("Wishlist", std::move(mapType)));
+    }
+
+    // Now initialize them:
     vector<unique_ptr<Init>> inits;
-    inits.push_back(make_unique<Init>("U", make_unique<Map>(vector<pair<unique_ptr<Var>, unique_ptr<Expr>>>())));
-    inits.push_back(make_unique<Init>("T", make_unique<Map>(vector<pair<unique_ptr<Var>, unique_ptr<Expr>>>())));
+
+    // U entries
+    vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> uEntries;
+    uEntries.emplace_back(make_unique<Var>("alice"), make_unique<String>("alicepass"));
+    uEntries.emplace_back(make_unique<Var>("bob"), make_unique<String>("bob123"));
+    uEntries.emplace_back(make_unique<Var>("charlie"), make_unique<String>("qwerty"));
+    inits.push_back(make_unique<Init>("U", make_unique<Map>(move(uEntries))));
+
+    // T empty
+    inits.push_back(make_unique<Init>("T", make_unique<Map>(
+                                               vector<pair<unique_ptr<Var>, unique_ptr<Expr>>>{})));
+
+    // ProductIdMap entries (dummy products)
+    vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> prodEntries;
+    {
+        // Product 1
+        vector<unique_ptr<Expr>> attrs1;
+        attrs1.push_back(make_unique<String>("Running Shoe"));       // name
+        attrs1.push_back(make_unique<String>("Lightweight runner")); // description
+        attrs1.push_back(make_unique<Num>(120));                     // price
+        attrs1.push_back(make_unique<String>("seller123"));          // sellerId
+        attrs1.push_back(make_unique<String>("Footwear"));           // category
+        auto prod1 = make_unique<Tuple>(move(attrs1));
+        prodEntries.emplace_back(make_unique<Var>("prod1"), move(prod1));
+    }
+    {
+        // Product 2
+        vector<unique_ptr<Expr>> attrs2;
+        attrs2.push_back(make_unique<String>("Leather Wallet"));
+        attrs2.push_back(make_unique<String>("Genuine leather"));
+        attrs2.push_back(make_unique<Num>(45));
+        attrs2.push_back(make_unique<String>("seller456"));
+        attrs2.push_back(make_unique<String>("Accessories"));
+        auto prod2 = make_unique<Tuple>(move(attrs2));
+        prodEntries.emplace_back(make_unique<Var>("prod2"), move(prod2));
+    }
+    inits.push_back(make_unique<Init>("ProductIdMap", make_unique<Map>(move(prodEntries))));
+
+    // Wishlist init with two users, each having a tuple of product‐IDs:
+    {
+        vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> wishEntries;
+
+        // alice has prod1 and prod2
+        {
+            vector<unique_ptr<Expr>> items;
+            items.push_back(make_unique<String>("prod1"));
+            items.push_back(make_unique<String>("prod2"));
+            auto tup = make_unique<Tuple>(move(items));
+            wishEntries.emplace_back(make_unique<Var>("alice"), move(tup));
+        }
+
+        // bob has prod3
+        {
+            vector<unique_ptr<Expr>> items;
+            items.push_back(make_unique<String>("prod3"));
+            auto tup = make_unique<Tuple>(move(items));
+            wishEntries.emplace_back(make_unique<Var>("bob"), move(tup));
+        }
+
+        inits.push_back(make_unique<Init>("Wishlist", make_unique<Map>(move(wishEntries))));
+    }
 
     Spec spec(move(globals), move(inits), {}, move(apiBlocks));
 
