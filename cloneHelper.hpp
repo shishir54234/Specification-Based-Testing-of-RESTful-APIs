@@ -8,15 +8,6 @@
 
 namespace cloneHelper {
 
-    // MAP,
-    // VAR,
-    // STRING,
-    // NUM,
-    // TUPLE,
-    // SET,
-    // FUNCTIONCALL_EXPR,
-    // POLYMORPHIC_FUNCTIONCALL_EXPR
-    // unique_ptr<Expr> &expr
 
 inline std::unique_ptr<Expr> clone(unique_ptr<Expr> &expr) {
     switch(expr.expressionType) {
@@ -85,6 +76,7 @@ inline std::unique_ptr<Expr> clone(unique_ptr<Expr> &expr) {
                 for(const auto &value:tupplePtr->expr){
                     clonedelements.push_back(clone(value));
                 }
+                return std::make_unique<Tuple>(std::move(clonedelements));
             }
             break;  
         }
@@ -104,14 +96,14 @@ inline std::unique_ptr<FuncCall> clone(const FuncCall &funcCall) {
 }
 
 
-inline std::unique_ptr<Stmt> cloneStmt(const Stmt &stmt) {
+inline std::unique_ptr<Stmt> clone(const Stmt &stmt) {
     switch(stmt.statementType) {
         case StatementType::ASSIGN: {
             const Assign* assignPtr = dynamic_cast<const Assign*>(&stmt);
             if (assignPtr) {
                 // Clone left-hand side (a Var) and right-hand side expression.
                 auto leftClone = std::make_unique<Var>(assignPtr->left->name);
-                auto rightClone = cloneExpr(*assignPtr->right);
+                auto rightClone = clone(*assignPtr->right);
                 return std::make_unique<Assign>(std::move(leftClone), std::move(rightClone));
             }
             break;

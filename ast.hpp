@@ -220,7 +220,6 @@ public:
     {
         if (other.type)
         {
-            // This assumes that TypeExpr has a clone() method.
             type = other.type->clone();
         }
     }
@@ -238,6 +237,8 @@ class Expr
 public:
     virtual ~Expr() = default;
     virtual void accept(ASTVisitor& visitor) const = 0;
+    virtual std::unique_ptr<Expr> clone() const = 0;
+
 
     ExpressionType expressionType;
 
@@ -292,6 +293,12 @@ public:
     void accept(Visitor *visitor)
     {
     }
+
+    std::unique_ptr<Expr> clone() const override{
+        return std::make_unique<Var>(name);
+    }
+
+
     std::string name;
 };
 
@@ -312,6 +319,15 @@ public:
             visitor->visitExpr(*arg);
         }
     }
+    std::unique_ptr<Expr> clone() const override{
+        vector<unique_ptr<Expr>>clonedArgs;
+        for(auto &arg:args){
+            clonedArgs.push_back(arg->clone());
+        }
+
+        return std::make_unique<FuncCall>(name,std::move(clonedArgs));
+    }
+
     std::string name;
     std::vector<std::unique_ptr<Expr>> args;
 };
@@ -330,6 +346,11 @@ public:
         visitor->visitNum(*this);
     }
 
+    std::unique_ptr<Expr> clone() const override{
+        return make_unique<Num>(value);
+    }
+
+
     int value;
 };
 
@@ -342,6 +363,9 @@ public:
         visitor.visit(*this);
     }
 
+    std::unique_ptr<Expr> clone() const override{
+        return make_unique<String>(value);
+    }
     string value;
 };
 
@@ -362,13 +386,23 @@ public:
             visitor->visitExpr(*e);
         }
     }
+
+    std::unique_ptr<Expr> clone() const override{
+        vector<std::unique_ptr<Expr>> clonedElements;
+        for(auto &element:elements){
+            clonedElements.push_back(element->clone());
+        }
+
+        return make_unique<Set>(std::move(clonedElements));
+    }
+
     std::vector<std::unique_ptr<Expr>> elements;
 };
 
 class Map : public Expr
 {
 public:
-    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : Expr(ExpressionType::MAP), value(std::move(value)) {}
+    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>value) : Expr(ExpressionType::MAP), value(std::move(value)) {}
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -383,13 +417,36 @@ public:
         }
     }
 
+    std::unique_ptr<Expr> clone() const override {
+        std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> clonedValue;
+    
+        for (const auto& element : value) {
+            auto clonedExpr = element.first->clone();
+            auto rawPtr = dynamic_cast<Var*>(clonedExpr.get());
+    
+            if (!rawPtr) {
+                throw std::runtime_error("Map key is not of type Var");
+            }
+    
+            std::unique_ptr<Var> clonedVar(static_cast<Var*>(clonedExpr.release()));
+            std::unique_ptr<Expr> clonedExprValue = element.second->clone();
+    
+            clonedValue.emplace_back(std::move(clonedVar), std::move(clonedExprValue));
+        }
+    
+        return std::make_unique<Map>(std::move(clonedValue));
+    }
+    
+    
+
+
     std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> value;
 };
 
 class Tuple : public Expr
 {
 public:
-    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : Expr(ExpressionType::TUPLE), expr(std::move(expr)) {}
+    explicit Tuple(std::vector<std::unique_ptr<Expr>> expr) : Expr(ExpressionType::TUPLE), expr(std::move(expr)) {}
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -401,6 +458,14 @@ public:
         {
             visitor->visitExpr(*e);
         }
+    }
+
+    std::unique_ptr<Expr> clone() const override{
+        std::vector<std::unique_ptr<Expr>> cloneexpr;
+        for(auto &e:expr){
+            cloneexpr.push_back(e->clone());
+        }
+        return make_unique<Tuple>(std::move(cloneexpr));
     }
     std::vector<std::unique_ptr<Expr>> expr;
 };
@@ -564,7 +629,8 @@ public:
     virtual void accept(ASTVisitor &visitor) const = 0;
 
     StatementType statementType;
-
+    virtual std::unique_ptr<Stmt> clone() const=0;
+    // virtual std::unique_ptr<Stmt> clone() const = 0;
 protected:
     Stmt(StatementType type) : statementType(type) {}
 };
@@ -585,6 +651,24 @@ public:
         visitor->visitVar(*left);
         visitor->visitExpr(*right);
     }
+
+    std::unique_ptr<Stmt> clone() const override {
+        // Clone the left-hand side; left->clone() returns a unique_ptr<Expr>.
+        std::unique_ptr<Expr> leftCloneBase = left->clone();
+        // Cast the result to a unique_ptr<Var>.
+        Var* leftCloneRaw = dynamic_cast<Var*>(leftCloneBase.release());
+        if (!leftCloneRaw) {
+            throw std::runtime_error("Clone of left-hand side did not produce a Var instance");
+        }
+        std::unique_ptr<Var> clonedLeft(leftCloneRaw);
+    
+        // Clone the right-hand side normally (returns a unique_ptr<Expr>).
+        std::unique_ptr<Expr> clonedRight = right->clone();
+    
+        // Return a new Assign node constructed with the cloned children.
+        return std::make_unique<Assign>(std::move(clonedLeft), std::move(clonedRight));
+    }
+    
     std::unique_ptr<Var> left;
     std::unique_ptr<Expr> right;
 };
@@ -604,36 +688,55 @@ public:
     {
         visitor->visitFuncCall(*call);
     }
-
+    std::unique_ptr<Stmt> clone() const override {
+        // Clone the function call; call->clone() returns a unique_ptr<Expr>.
+        std::unique_ptr<Expr> callCloneBase = call->clone();
+        // Cast the result to a unique_ptr<FuncCall>.
+        FuncCall* callCloneRaw = dynamic_cast<FuncCall*>(callCloneBase.release());
+        if (!callCloneRaw) {
+            throw std::runtime_error("Clone of FuncCall did not produce a FuncCall instance");
+        }
+        std::unique_ptr<FuncCall> clonedCall(callCloneRaw);
+    
+        // Return a new FuncCallStmt node with the cloned FuncCall.
+        return std::make_unique<FuncCallStmt>(std::move(clonedCall));
+    }
     std::unique_ptr<FuncCall> call;
 };
 
-// Program is the root of our AST
-class Program
-{
-public:
-    explicit Program(std::vector<std::unique_ptr<Stmt>> statements, vector<std::unique_ptr<Decl>> declarations)
-        : statements(std::move(statements)), declarations(std::move(declarations)) {}
-    void accept(ASTVisitor &visitor)
-    {
-        visitor.visit(*this);
-    }
-    void accept(Visitor *visitor)
-    {
-
-        for (auto &decl : declarations)
-        {
-            visitor->visitDecl(*decl);
+class Program {
+  public:
+        Program(const Program& other) {
+            for (const auto& stmt : other.statements) {
+                statements.push_back(stmt->clone());
+            }
+    
+    
+            for (const auto& decl : other.declarations) {
+                declarations.push_back(decl->clone()); 
+            }
         }
-
-        for (auto &stmt : statements)
-        { // Use const reference to avoid unnecessary copies
-            visitor->visitStmt(*stmt);
+    
+        Program(std::vector<std::unique_ptr<Stmt>> statements,
+                std::vector<std::unique_ptr<Decl>> declarations)
+            : statements(std::move(statements)), declarations(std::move(declarations)) {}
+    
+        void accept(ASTVisitor &visitor) {
+            visitor.visit(*this);
         }
-    }
-
-    std::vector<std::unique_ptr<Stmt>> statements;
-    vector<unique_ptr<Decl>> declarations;
-};
+    
+        void accept(Visitor *visitor) {
+            for (auto &decl : declarations) {
+                visitor->visitDecl(*decl);
+            }
+            for (auto &stmt : statements) {
+                visitor->visitStmt(*stmt);
+            }
+        }
+    
+        std::vector<std::unique_ptr<Stmt>> statements;
+        std::vector<std::unique_ptr<Decl>> declarations;
+    };
+    
 
 #endif
