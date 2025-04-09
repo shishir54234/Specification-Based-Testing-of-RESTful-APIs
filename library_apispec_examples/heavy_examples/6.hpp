@@ -7,10 +7,10 @@
 #include "../../ast.hpp"
 #include "../../algo.hpp"
 
-class heavyexample2
+class heavyexample6
 {
 public:
-    static void getStudentByUserIdExample(vector<unique_ptr<API>> &apis, SymbolTable &root)
+    static void example(vector<unique_ptr<API>> &apis, SymbolTable &root)
     {
         // PRECONDITION: (t -> u in T and userId in U and u in U)
         vector<unique_ptr<Expr>> accessMapParams, getIdParams, andParams1, andParams2;

@@ -10,9 +10,9 @@
 #include "../../ast.hpp"
 #include "../../algo.hpp"
 
-class SaveBookAPI {
+class heavyexample11{
 public:
-    static void define(vector<unique_ptr<API>> &apis, SymbolTable &root) {
+    static void example(vector<unique_ptr<API>> &apis, SymbolTable &root) {
         vector<unique_ptr<Expr>> args_in1params, args_in2params;
         vector<unique_ptr<Expr>> accessMap1params, getId1params, getRoleParams;
         vector<unique_ptr<Expr>> andParams;
@@ -54,7 +54,7 @@ public:
         vector<unique_ptr<Expr>> call_args;
         call_args.push_back(std::make_unique<Var>("token"));
         call_args.push_back(std::make_unique<Var>("bookData"));
-        auto call = std::make_unique<APIcall>(make_unique<FuncCall>("saveBook", move(call_args)), Response(HTTPResponseCode::OK_200));
+        auto call = std::make_unique<APIcall>(make_unique<FuncCall>("saveBook", move(call_args)), Response(HTTPResponseCode::OK_200,std::make_unique<Var>("book")));
 
         // POSTCONDITION: B' = B[bookData.code -> bookData]
         vector<unique_ptr<Expr>> post_args;

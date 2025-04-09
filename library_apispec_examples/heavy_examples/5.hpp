@@ -7,13 +7,13 @@
 #include "../../ast.hpp"
 #include "../../algo.hpp"
 
-class heavyexample2
+class heavyexample5
 {
 public:
     static void example(vector<unique_ptr<API>> &apis, SymbolTable &root)
     {
         // --------------------------------UPDATESTUDENT_OK--------------------------------
-        // PRECONDITION: (t -> u in T and u in U) AND (studentData.id = u.id)
+        // PRECONDITION: (t in T and T[t].id in U) AND (studentData.id = u.id)
         // updateStudent(t : Token, studentData : Student) ==> (OK)
         // POSTCONDITION: S' = S[studentData.id -> studentData]
         // --------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ public:
         getIdParams.push_back(std::move(mapAccess));
         auto getId = std::make_unique<FuncCall>("getId", move(getIdParams));
 
+        cout<<"Yo There"<<endl;
         // Check if `u` is in `U`
         vector<unique_ptr<Expr>> inUParams;
         inUParams.push_back(std::move(getId));
@@ -37,8 +38,12 @@ public:
 
         // Ensure studentData.id = u.id
         vector<unique_ptr<Expr>> equalsParams;
-        equalsParams.push_back(std::make_unique<FuncCall>("getId", std::vector<unique_ptr<Expr>>{std::make_unique<Var>("studentData")}));
-        equalsParams.push_back(std::make_unique<FuncCall>("getId", std::vector<unique_ptr<Expr>>{std::make_unique<Var>("T[token]")}));
+        vector<unique_ptr<Expr>> getID1params;
+        getID1params.push_back(std::make_unique<Var>("studentData"));
+        equalsParams.push_back(std::make_unique<FuncCall>("getId", move(getID1params)));
+        vector<unique_ptr<Expr>>getID2params;
+        getID2params.push_back(std::make_unique<Var>("T[token]"));
+        equalsParams.push_back(std::make_unique<FuncCall>("getId", move(getID2params)));
         auto equals = std::make_unique<FuncCall>("equals", move(equalsParams));
 
         // Combine preconditions (t -> u in T and u in U) AND (studentData.id = u.id)
@@ -51,12 +56,14 @@ public:
         vector<unique_ptr<Expr>> callArgs;
         callArgs.push_back(std::make_unique<Var>("token"));
         callArgs.push_back(std::make_unique<Var>("studentData"));
-        auto call = std::make_unique<APIcall>(make_unique<FuncCall>("updateStudent", move(callArgs)), Response(HTTPResponseCode::OK_200));
+        auto call = std::make_unique<APIcall>(make_unique<FuncCall>("updateStudent", move(callArgs)), Response(HTTPResponseCode::OK_200,std::make_unique<Var>("studentData")));
 
         // Postcondition: S' = S[studentData.id -> studentData]
         vector<unique_ptr<Expr>> postArgs;
         postArgs.push_back(std::make_unique<Var>("S"));
-        postArgs.push_back(std::make_unique<FuncCall>("getId", std::vector<unique_ptr<Expr>>{std::make_unique<Var>("studentData")}));
+        vector<unique_ptr<Expr>>getID2args;
+        getID2args.push_back(std::make_unique<Var>("studentData"));
+        postArgs.push_back(std::make_unique<FuncCall>("getId",move(getID2params)));
         postArgs.push_back(std::make_unique<Var>("studentData"));
         auto postcondition = std::make_unique<FuncCall>("mapUpdate", move(postArgs));
 
