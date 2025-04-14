@@ -13,6 +13,7 @@ class TypeExpr;
 class Var;
 class FuncCall;
 class Num;
+class String;
 class Set;
 class Map;
 class Tuple;
@@ -28,6 +29,7 @@ class Spec;
 class Stmt;
 class Assign;
 class FuncCallStmt;
+
 class Program;
 
 class ASTVisitor
@@ -46,6 +48,7 @@ public:
     virtual void visit(const Var &node) = 0;
     virtual void visit(const FuncCall &node) = 0;
     virtual void visit(const Num &node) = 0;
+    virtual void visit(const String &node) = 0;
     virtual void visit(const Set &node) = 0;
     virtual void visit(const Map &node) = 0;
     virtual void visit(const Tuple &node) = 0;
@@ -54,7 +57,6 @@ public:
     // Declaration visitors
     virtual void visit(const Decl &node) = 0;
     virtual void visit(const FuncDecl &node) = 0;
-    
 
     // API and Related visitors
     virtual void visit(const APIcall &node) = 0;

@@ -5,7 +5,7 @@
 #include "ast.hpp"
 #include "algo.hpp"
 #include "library_apispec_examples/Entry.hpp"
-#include "jsCodeGen.hpp"
+#include "jsCodeGenerator/jsCodeGen.cpp"
 using namespace std;
 
 void test_everything(){

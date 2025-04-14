@@ -123,6 +123,12 @@ public:
         std::cout << "Num: " << node.value << '\n';
     }
 
+    void visit(const String &node) override
+    {
+        printIndent();
+        std::cout << "String: " << node.value << '\n';
+    }
+
     void visit(const Set &node) override
     {
         printIndent();
@@ -203,6 +209,7 @@ public:
         std::cout << "Declaration: " << node.name << "\n";
         indent++;
         node.type->accept(*this);
+        cout<<"\n";
         indent--;
     }
     // void visit(const int node) override
@@ -396,6 +403,7 @@ public:
         }
         cout<<"\n";
     }
+
     void visit(const FuncCallStmt &node) override{
         cout<<"FuncCallStmt: ";
         node.call->accept(*this);
@@ -403,6 +411,9 @@ public:
     }
     void visit(const Program &node) override{
         cout<<"Program:\n";
+        for(const auto &decls: node.declarations){
+            decls.get()->accept(*this);
+        }
         for (const auto &func : node.statements)
         {
             func.get()->accept(*this);
