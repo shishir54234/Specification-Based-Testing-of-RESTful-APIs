@@ -1,7 +1,9 @@
 #pragma once
 #include <iostream>
 #include "ast.hpp"
-class PrintVisitor : public ASTVisitor
+#include <iomanip> // For std::quoted
+
+class jsCodeGen : public ASTVisitor
 {
 private:
     int indent = 0;
@@ -13,13 +15,11 @@ private:
             std::cout << "  ";
         }
     }
-
 public:
     // Existing type expression visitors
     void visit(const TypeConst &node) override
     {
-        printIndent();
-        std::cout << "TypeConst: " << node.name << '\n';
+        std::cout << node.name;
     }
 
     void visit(const FuncType &node) override
@@ -101,79 +101,67 @@ public:
     // Expression visitors
     void visit(const Var &node) override
     {
-        printIndent();
-        std::cout << "Var: " << node.name << '\n';
+        std::cout <<node.name;
     }
+    // void visit(const String &node) override
+    // {
+    //     std::cout <<  quoted(node.value) ;
+    // }
 
     void visit(const FuncCall &node) override
     {
-        printIndent();
-        std::cout << "FuncCall: " << node.name << "\n";
-        indent++;
-        for (const auto &arg : node.args)
-        {
-            arg->accept(*this);
+        std::cout << node.name << '(';
+        
+        for (size_t i = 0; i < node.args.size(); ++i) {
+            node.args[i]->accept(*this);
+            if (i < node.args.size() - 1) {
+                std::cout << ", ";
+            }
         }
-        indent--;
+        
+        std::cout<<')';
     }
 
     void visit(const Num &node) override
     {
-        printIndent();
-        std::cout << "Num: " << node.value << '\n';
+        std::cout << node.value;
     }
 
-    void visit(const String &node) override
-    {
-        printIndent();
-        std::cout << "String: " << node.value << '\n';
-    }
-
-    void visit(const Set &node) override
-    {
-        printIndent();
-        std::cout << "Set:\n";
-        indent++;
-        for (const auto &elem : node.elements)
-        {
-            elem->accept(*this);
+    void visit(const Set &node) override {
+        std::cout << "new Set([";
+        for (size_t i = 0; i < node.elements.size(); i++) {
+            node.elements[i]->accept(*this);
+            if (i < node.elements.size() - 1)
+                std::cout << ", ";
         }
-        indent--;
+        std::cout << "])";
     }
-
-    void visit(const Map &node) override
-    {
-        printIndent();
-        std::cout << "Map:\n";
-        indent++;
-        for (const auto &pair : node.value)
-        {
-            printIndent();
-            std::cout << "Key:\n";
-            indent++;
-            pair.first->accept(*this);
-            indent--;
-
-            printIndent();
-            std::cout << "Value:\n";
-            indent++;
-            pair.second->accept(*this);
-            indent--;
+    
+    void visit(const Map &node) override {
+        std::cout << "new Map([";
+        for (size_t i = 0; i < node.value.size(); i++) {
+            std::cout << "[";
+            node.value[i].first->accept(*this);
+            std::cout << ", ";
+            node.value[i].second->accept(*this);
+            std::cout << "]";
+            if (i < node.value.size() - 1)
+                std::cout << ", ";
         }
-        indent--;
+        std::cout << "])";
     }
+    
 
-    void visit(const Tuple &node) override
-    {
-        printIndent();
-        std::cout << "Tuple:\n";
-        indent++;
-        for (const auto &expr : node.expr)
-        {
-            expr->accept(*this);
+    void visit(const Tuple &node) override {
+        std::cout << "[";
+        for (size_t i = 0; i < node.expr.size(); i++) {
+            node.expr[i]->accept(*this);
+            if (i < node.expr.size() - 1)
+                std::cout << ", ";
         }
-        indent--;
+        std::cout << "]";
     }
+    
 
     // void visit(const PolymorphicFuncCall &node) override
     // {
@@ -205,18 +193,10 @@ public:
     // Declaration visitors
     void visit(const Decl &node) override
     {
-        printIndent();
-        std::cout << "Declaration: " << node.name << "\n";
-        indent++;
-        node.type->accept(*this);
-        cout<<"\n";
-        indent--;
+ 
+        std::cout << "let " << node.name << ";"<<"\n";
     }
-    // void visit(const int node) override
-    // {
-    //     printIndent();
-    //     std::cout << "Integer Node: " << node << '\n';
-    // }
+
     void visit(const FuncDecl &node) override
     {
         printIndent();
@@ -346,18 +326,6 @@ public:
         }
         indent--;
 
-        // printIndent();
-        // std::cout << "Types:\n";
-        // indent++;
-        // for (const auto &type : node.types)
-        // {
-        //     if (auto recordDecl = dynamic_cast<const Decl *>(type.get()))
-        //     {
-        //         visit(*recordDecl);
-        //     }
-        // }
-        // indent--;
-
         printIndent();
         std::cout << "Initializations:\n";
         indent++;
@@ -388,7 +356,6 @@ public:
         indent--;
     }
     void visit(const Assign &node) override{
-        cout<<"Assign: ";
         if (node.left) // Check if left is not null
             node.left->accept(*this);
         else
@@ -401,16 +368,16 @@ public:
         else{
             std::cout << "<null_expr>";
         }
-        cout<<"\n";
+        cout<<";"<<"\n";
+
     }
 
     void visit(const FuncCallStmt &node) override{
-        cout<<"FuncCallStmt: ";
         node.call->accept(*this);
-        cout<<"\n";
+        cout<<";"<<"\n";
     }
     void visit(const Program &node) override{
-        cout<<"Program:\n";
+        std:: cout << "const S$ = require('S$');"<<"\n";
         // for(const auto &decls: node.declarations){
         //     decls.get()->accept(*this);
         // }

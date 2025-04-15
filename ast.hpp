@@ -612,8 +612,8 @@ public:
 class Program
 {
 public:
-    explicit Program(std::vector<std::unique_ptr<Stmt>> statements, vector<std::unique_ptr<Decl>> declarations)
-        : statements(std::move(statements)), declarations(std::move(declarations)) {}
+    explicit Program(std::vector<std::unique_ptr<Stmt>> statements)
+        : statements(std::move(statements)) {}
     void accept(ASTVisitor &visitor)
     {
         visitor.visit(*this);
@@ -621,10 +621,10 @@ public:
     void accept(Visitor *visitor)
     {
 
-        for (auto &decl : declarations)
-        {
-            visitor->visitDecl(*decl);
-        }
+        // for (auto &decl : declarations)
+        // {
+        //     visitor->visitDecl(*decl);
+        // }
 
         for (auto &stmt : statements)
         { // Use const reference to avoid unnecessary copies
@@ -633,7 +633,6 @@ public:
     }
 
     std::vector<std::unique_ptr<Stmt>> statements;
-    vector<unique_ptr<Decl>> declarations;
 };
 
 #endif
