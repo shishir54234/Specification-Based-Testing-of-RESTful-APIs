@@ -1,6 +1,6 @@
 #ifndef CODEGEN_H
 #define CODEGEN_H
-
+#pragma once
 #include <iostream>
 #include <stack>
 #include "visitor.h"
@@ -15,10 +15,10 @@ using namespace std;
 
 class CodeGenerator {
     protected:
-        Visitor *visitor;
+        ExpoSEVisitor *visitor;
         static string indent(string, string, int);
     public:
-        CodeGenerator(Visitor *v);
+        CodeGenerator(ExpoSEVisitor *v);
         string generateCode(Program&);
         virtual ~CodeGenerator();
     };
