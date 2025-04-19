@@ -1,9 +1,9 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "../ast.hpp"
-#include "../IMA.hpp"
-#include "../PrintVisitor.hpp"
+#include "../../ast.hpp"
+#include "../../IMA.hpp"
+#include "../../PrintVisitor.hpp"
 
 using namespace std;
 
@@ -99,7 +99,6 @@ int main()
 
     // --- Signup API ---
     {
-        // Precondition: not_in(u, dom(U))
         vector<unique_ptr<Expr>> preArgs;
         preArgs.push_back(make_unique<Var>("u"));
         vector<unique_ptr<Expr>> h;
@@ -107,56 +106,58 @@ int main()
         preArgs.push_back(make_unique<FuncCall>("dom", move(h)));
         auto precondition = make_unique<FuncCall>("not_in", move(preArgs));
 
-        // API Call: signup(u, p)
+        // API Call: signup_success(u, p)
         vector<unique_ptr<Expr>> apiArgs;
         apiArgs.push_back(make_unique<Var>("u"));
         apiArgs.push_back(make_unique<Var>("p"));
         auto apiCallFunc = make_unique<FuncCall>("signup", move(apiArgs));
 
-        // Postcondition: U[u] = p (User added)
+        // Postcondition: U[u] = p (User added to U)
         vector<unique_ptr<Expr>> postArgs, postArgs1;
         vector<unique_ptr<Expr>> e2;
-        e2.push_back(make_unique<Var>("U"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // Wrapper for U
+        // e2.push_back(make_unique<Var>("U"));
+        postArgs1.push_back(make_unique<Var>("U")); // wrapper for U
         postArgs1.push_back(make_unique<Var>("u"));
-        postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // U[u]
+        postArgs.push_back(make_unique<FuncCall>("mapped_value", move(postArgs1))); // represents U[u]
         postArgs.push_back(make_unique<Var>("p"));
-
-        auto postcondition = make_unique<FuncCall>("in", move(postArgs));
+        auto postcondition = make_unique<FuncCall>("equals", move(postArgs));
         Response response(HTTPResponseCode::CREATED_201, move(postcondition));
-
         auto apiCall = make_unique<APIcall>(move(apiCallFunc), move(response));
         apiBlocks.push_back(make_unique<API>(move(precondition), move(apiCall), move(response)));
     }
 
     // --- Login API ---
     {
-        // Precondition: in(u, dom(U))
         vector<unique_ptr<Expr>> preArgs;
-        preArgs.push_back(make_unique<Var>("u"));
+        preArgs.push_back(make_unique<Var>("p"));
         vector<unique_ptr<Expr>> h;
         h.push_back(make_unique<Var>("U"));
-        preArgs.push_back(make_unique<FuncCall>("dom", move(h)));
-        auto precondition = make_unique<FuncCall>("in", move(preArgs));
+        h.push_back(make_unique<Var>("u"));
+        preArgs.push_back(make_unique<FuncCall>("mapped_value", move(h)));
+        vector<unique_ptr<Expr>> preArgs0;
+        preArgs0.push_back(make_unique<FuncCall>("equals", move(preArgs)));
+        vector<unique_ptr<Expr>> h2;
+        h2.push_back(make_unique<Var>("T"));
+        h2.push_back(make_unique<Var>("token"));
+        preArgs0.push_back(make_unique<FuncCall>("in_dom", move(h2)));
+        auto precondition = make_unique<FuncCall>("and_operator", move(preArgs0));
 
-        // API Call: login(u, p)
+        // API Call: login_success(u, p)
         vector<unique_ptr<Expr>> apiArgs;
         apiArgs.push_back(make_unique<Var>("u"));
         apiArgs.push_back(make_unique<Var>("p"));
         auto apiCallFunc = make_unique<FuncCall>("login", move(apiArgs));
 
-        // Postcondition: T[u] = token (Token stored)
+        // Postcondition: T[u] = token (Token stored in T)
         vector<unique_ptr<Expr>> postArgs, postArgs1;
         vector<unique_ptr<Expr>> e2;
-        e2.push_back(make_unique<Var>("T"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // Wrapper for T
-        postArgs1.push_back(make_unique<Var>("u"));
-        postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // T[u]
-        postArgs.push_back(make_unique<Var>("token"));
-
-        auto postcondition = make_unique<FuncCall>("in", move(postArgs));
+        // e2.push_back(make_unique<Var>("T"));
+        postArgs1.push_back(make_unique<Var>("T")); // wrapper for T
+        postArgs1.push_back(make_unique<Var>("token"));
+        postArgs.push_back(make_unique<FuncCall>("mapped_value", move(postArgs1))); // represents T[u]
+        postArgs.push_back(make_unique<Var>("u"));
+        auto postcondition = make_unique<FuncCall>("equals", move(postArgs));
         Response response(HTTPResponseCode::OK_200, move(postcondition));
-
         auto apiCall = make_unique<APIcall>(move(apiCallFunc), move(response));
         apiBlocks.push_back(make_unique<API>(move(precondition), move(apiCall), move(response)));
     }
@@ -174,16 +175,26 @@ int main()
 
     globals.push_back(std::make_unique<Decl>("U", std::move(mapTypeU)));
     globals.push_back(std::make_unique<Decl>("T", std::move(mapTypeT)));
+    // Step 1: Create vector and use emplace_back
+    vector<pair<unique_ptr<Var>, unique_ptr<Expr>>> uEntries;
+
+    uEntries.emplace_back(make_unique<Var>("alice"), make_unique<String>("alicepass"));
+    uEntries.emplace_back(make_unique<Var>("bob"), make_unique<String>("bob123"));
+    uEntries.emplace_back(make_unique<Var>("charlie"), make_unique<String>("qwerty"));
+
+    // Step 2: Move into Map
 
     vector<unique_ptr<Init>> inits;
-    inits.push_back(std::make_unique<Init>("U", std::make_unique<Map>(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>())));
-    inits.push_back(std::make_unique<Init>("T", std::make_unique<Map>(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>())));
+    inits.push_back(make_unique<Init>("U", make_unique<Map>(std::move(uEntries))));
+
+    inits.push_back(make_unique<Init>("T", make_unique<Map>(vector<pair<unique_ptr<Var>, unique_ptr<Expr>>>())));
 
     Spec spec(move(globals), move(inits), {}, move(apiBlocks));
 
     // -------------------------------
     // 4. Run IMA algorithm & Print result.
     // -------------------------------
+
     Program transformed = IMA(clientProgram, spec);
     PrintVisitor printer;
     transformed.accept(printer);

@@ -206,7 +206,8 @@ public:
     Decl(std::string name, std::unique_ptr<TypeExpr> typeExpr)
         : name(std::move(name)), type(std::move(typeExpr)) {}
     virtual ~Decl() = default;
-    virtual void accept(ASTVisitor &visitor) {
+    virtual void accept(ASTVisitor &visitor)
+    {
         visitor.visit(*this);
     }
 
@@ -237,7 +238,7 @@ class Expr
 {
 public:
     virtual ~Expr() = default;
-    virtual void accept(ASTVisitor& visitor) const = 0;
+    virtual void accept(ASTVisitor &visitor) const = 0;
 
     ExpressionType expressionType;
 
@@ -367,7 +368,11 @@ public:
 class Map : public Expr
 {
 public:
-    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : Expr(ExpressionType::MAP), value(std::move(value)) {}
+    explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>> entries)
+        : Expr(ExpressionType::MAP),
+          value(std::move(entries))
+    {
+    }
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -388,7 +393,13 @@ public:
 class Tuple : public Expr
 {
 public:
-    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : Expr(ExpressionType::TUPLE), expr(std::move(expr)) {}
+    explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs)
+        : Expr(ExpressionType::TUPLE),
+          expr(move(exprs)) // ← CORRECT: move the ctor argument into the member
+    {
+    }
+    // vector<std::unique_ptr<Expr>> expr;
+
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -428,7 +439,6 @@ public:
         }
     }
 
-    
     std::string name;
     std::vector<std::unique_ptr<TypeExpr>> params;
     std::pair<HTTPResponseCode, vector<std::unique_ptr<TypeExpr>>> returnType;
@@ -458,7 +468,7 @@ class Response
 public:
     HTTPResponseCode code;
     std::unique_ptr<Expr> expr;
-    Response(HTTPResponseCode code, std::unique_ptr<Expr> expr) : code(code), expr(std::move(expr)) {};
+    Response(HTTPResponseCode c, std::unique_ptr<Expr> e) : code(c), expr(move(e)) {};
     void accept(ASTVisitor &visitor) const
     {
         visitor.visit(*this);
@@ -486,7 +496,7 @@ public:
         // visitor->visitResponse(response);
     }
 
-    APIcall(std::unique_ptr<FuncCall> call, Response response) : call(std::move(call)), response(std::move(response)) {};
+    APIcall(std::unique_ptr<FuncCall> Call, Response Response) : call(std::move(Call)), response(std::move(Response)) {};
 };
 // API
 class API
@@ -494,8 +504,8 @@ class API
 public:
     API(std::unique_ptr<Expr> precondition,
         std::unique_ptr<APIcall> functionCall,
-        Response response)
-        : pre(std::move(precondition)), call(std::move(functionCall)), response(std::move(response)) {}
+        Response Response)
+        : pre(std::move(precondition)), call(std::move(functionCall)), response(std::move(Response)) {}
     void accept(ASTVisitor &visitor) const
     {
         visitor.visit(*this);
@@ -572,8 +582,8 @@ protected:
 class Assign : public Stmt
 {
 public:
-    Assign(std::unique_ptr<Var> left, std::unique_ptr<Expr> right)
-        : Stmt(StatementType::ASSIGN), left(std::move(left)), right(std::move(right)) {}
+    Assign(std::unique_ptr<Var> Left, std::unique_ptr<Expr> Right)
+        : Stmt(StatementType::ASSIGN), left(std::move(Left)), right(std::move(Right)) {}
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -592,8 +602,8 @@ public:
 class FuncCallStmt : public Stmt
 {
 public:
-    explicit FuncCallStmt(std::unique_ptr<FuncCall> call)
-        : Stmt(StatementType::FUNCTIONCALL_STMT), call(std::move(call)) {}
+    explicit FuncCallStmt(std::unique_ptr<FuncCall> Call)
+        : Stmt(StatementType::FUNCTIONCALL_STMT), call(std::move(Call)) {}
     void accept(ASTVisitor &visitor) const override
     {
         visitor.visit(*this);
@@ -611,8 +621,8 @@ public:
 class Program
 {
 public:
-    explicit Program(std::vector<std::unique_ptr<Stmt>> statements, vector<std::unique_ptr<Decl>> declarations)
-        : statements(std::move(statements)), declarations(std::move(declarations)) {}
+    explicit Program(std::vector<std::unique_ptr<Stmt>> Statements, vector<std::unique_ptr<Decl>> Declarations)
+        : statements(std::move(Statements)), declarations(std::move(Declarations)) {}
     void accept(ASTVisitor &visitor)
     {
         visitor.visit(*this);

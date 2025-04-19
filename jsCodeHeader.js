@@ -2,6 +2,16 @@ function input(symbolholder) {
   return S$.symbol(symbolholder, "symbolic_variable");
 }
 
+function mapped_value(map, key) {
+  return map.get(key);
+}
+function equals(a, b) {
+  return a === b;
+}
+
+function and_operator(a, b) {
+  return a && b;
+}
 function _in(key, collection) {
   return collection.has(key);
 }
@@ -28,4 +38,10 @@ function assert(condition) {
 // Simulates a signup function
 function signup(username, password) {
   console.log(`Signed up with username: ${username} and password: ${password}`);
+}
+
+function login(username, password) {
+  console.log(
+    `logging up with username: ${username} and password: ${password}`
+  );
 }
