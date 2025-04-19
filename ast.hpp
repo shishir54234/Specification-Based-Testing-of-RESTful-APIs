@@ -399,6 +399,12 @@ public:
     std::vector<std::unique_ptr<Expr>> elements;
 };
 
+// Var* leftCloneRaw = dynamic_cast<Var*>(leftCloneBase.release());
+// if (!leftCloneRaw) {
+//     throw std::runtime_error("Clone of left-hand side did not produce a Var instance");
+// }
+// std::unique_ptr<Var> clonedLeft(leftCloneRaw);
+
 class Map : public Expr
 {
 public:
@@ -429,6 +435,7 @@ public:
             }
     
             std::unique_ptr<Var> clonedVar(static_cast<Var*>(clonedExpr.release()));
+            // std::unique_ptr<Var> clonedVar(clonedExpr);
             std::unique_ptr<Expr> clonedExprValue = element.second->clone();
     
             clonedValue.emplace_back(std::move(clonedVar), std::move(clonedExprValue));
