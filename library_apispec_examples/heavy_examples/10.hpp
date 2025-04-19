@@ -7,9 +7,9 @@
 #include "../../ast.hpp"
 #include "../../algo.hpp"
 
-class DeleteBookAPI {
+class heavyexample10 {
 public:
-    static void implement(vector<unique_ptr<API>> &apis, SymbolTable &root) {
+    static void example(vector<unique_ptr<API>> &apis, SymbolTable &root) {
         unique_ptr<Expr> pre_condition, post_condition;
         vector<unique_ptr<Expr>> andParams, inParams1, inParams2, roleParams;
         vector<unique_ptr<Expr>> mapAccessParams, getRoleParams, deleteParams;
@@ -42,8 +42,7 @@ public:
         callArgs.push_back(std::make_unique<Var>("bookCode"));
         auto call = std::make_unique<APIcall>(
             std::make_unique<FuncCall>("deleteBook", move(callArgs)),
-            Response(HTTPResponseCode::OK_200)
-        );
+            Response(HTTPResponseCode::OK_200,std::make_unique<Var>("bookData")));
 
         // Post-condition: B' = B \ {bookCode}
         deleteParams.push_back(std::make_unique<Var>("B"));

@@ -7,7 +7,7 @@
 // --------------------- PLEASE READ THIS BEFORE PROCEEDING ---------------------------------------
 
 // ASTvisitor ====> virtual class, printervisitor==> implementation of AST visitor and is used to convert the whole thing into a string 
-// Visitor Class for jsCode generation.
+// ExpoSEVisitor Class for jsCode generation.
 using namespace std;
 #ifndef AST_HPP
 #define AST_HPP
@@ -78,7 +78,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
     }
     std::unique_ptr<TypeExpr> clone() const override
@@ -98,7 +98,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         for (auto &param : params)
         {
@@ -131,7 +131,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         // visitor->visitTypeExpr(*domain);
         // visitor->visitTypeExpr(*range);
@@ -157,7 +157,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         for (auto &e : elements)
         {
@@ -188,7 +188,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         // visitor->visitTypeExpr(*elementType);
     }
@@ -210,7 +210,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         // visitor->visitTypeExpr(*type);
     }
@@ -264,7 +264,7 @@ protected:
 // //         visitor.visit(*this);
 // //     }
 
-//     void accept(Visitor *visitor)
+//     void accept(ExpoSEVisitor *visitor)
 //     {
 //         for (auto &typeArg : typeArgs)
 //         {
@@ -290,7 +290,7 @@ public:
         return name < other.name; // Lexicographical comparison
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
     }
 
@@ -312,7 +312,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         for (auto &arg : args)
         {
@@ -341,7 +341,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         visitor->visitNum(*this);
     }
@@ -379,7 +379,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         for (auto &e : elements)
         {
@@ -414,7 +414,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         for (auto &v : value)
         {
@@ -459,7 +459,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         for (auto &e : expr)
         {
@@ -490,7 +490,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         // for(auto& param: params){
         //     visitor->visitTypeExpr(*param);
@@ -518,7 +518,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         visitor->visitExpr(*expr);
     }
@@ -537,7 +537,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         // visitor->visitHTTPResponseCode(code);
         visitor->visitExpr(*expr);
@@ -553,7 +553,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         visitor->visitFuncCall(*call);
         // visitor->visitResponse(response);
@@ -574,7 +574,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         visitor->visitExpr(*pre);
         // visitor->visitAPIcall(*call);
@@ -603,7 +603,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         // for(auto& global: globals) {
         //     visitor->visitDecl(*global);
@@ -653,7 +653,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         visitor->visitVar(*left);
         visitor->visitExpr(*right);
@@ -691,7 +691,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(Visitor *visitor)
+    void accept(ExpoSEVisitor *visitor)
     {
         visitor->visitFuncCall(*call);
     }
@@ -711,39 +711,31 @@ public:
     std::unique_ptr<FuncCall> call;
 };
 
-class Program {
-  public:
-        Program(const Program& other) {
-            for (const auto& stmt : other.statements) {
-                statements.push_back(stmt->clone());
-            }
-    
-    
-            for (const auto& decl : other.declarations) {
-                declarations.push_back(decl->clone()); 
-            }
+// Program is the root of our AST
+class Program
+{
+public:
+    explicit Program(std::vector<std::unique_ptr<Stmt>> statements)
+        : statements(std::move(statements)) {}
+    void accept(ASTVisitor &visitor)
+    {
+        visitor.visit(*this);
+    }
+    void accept(ExpoSEVisitor *visitor)
+    {
+
+        // for (auto &decl : declarations)
+        // {
+        //     visitor->visitDecl(*decl);
+        // }
+
+        for (auto &stmt : statements)
+        { // Use const reference to avoid unnecessary copies
+            visitor->visitStmt(*stmt);
         }
-    
-        Program(std::vector<std::unique_ptr<Stmt>> statements,
-                std::vector<std::unique_ptr<Decl>> declarations)
-            : statements(std::move(statements)), declarations(std::move(declarations)) {}
-    
-        void accept(ASTVisitor &visitor) {
-            visitor.visit(*this);
-        }
-    
-        void accept(Visitor *visitor) {
-            for (auto &decl : declarations) {
-                visitor->visitDecl(*decl);
-            }
-            for (auto &stmt : statements) {
-                visitor->visitStmt(*stmt);
-            }
-        }
-    
-        std::vector<std::unique_ptr<Stmt>> statements;
-        std::vector<std::unique_ptr<Decl>> declarations;
-    };
-    
+    }
+
+    std::vector<std::unique_ptr<Stmt>> statements;
+};
 
 #endif

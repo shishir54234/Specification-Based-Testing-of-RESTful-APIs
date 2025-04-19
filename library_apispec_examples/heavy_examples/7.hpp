@@ -7,10 +7,10 @@
 #include "../../ast.hpp"
 #include "../../algo.hpp"
 
-class heavyexample2
+class heavyexample7
 {
 public:
-    static void getAllBooksAPI(vector<unique_ptr<API>> &apis, SymbolTable &root)
+    static void example(vector<unique_ptr<API>> &apis, SymbolTable &root)
     {
         vector<unique_ptr<Expr>> args_in1params, accessMap1params, getId1params;
         vector<unique_ptr<Expr>> args_in2params;

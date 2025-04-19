@@ -45,7 +45,7 @@ class TypeMap
     TypeMap* par;
     vector<TypeMap *> children;
     // Mapping from a variable name to its type 
-    map<string, Decl> mapping;
+    map<string, TypeExpr *>mapping;
 };
 // linear
 unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const string &add)
@@ -278,14 +278,23 @@ unique_ptr<FuncCallStmt> makeStmt(unique_ptr<Expr> expr)
     }
     return nullptr;
 }
-void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariables, string toadd, SymbolTable *symtable){
-    if(!expr){
-        return;
-    }
+void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariables, string toadd, SymbolTable *symtable, TypeMap &final, TypeMap &typemap){
     if(!expr){
         return;
     }
     if (auto var = dynamic_cast<Var *>(expr.get())){
+        if(symtable->exists(*var))
+        {
+            // we know its an input variable 
+            // we need to get its type
+            auto it=typemap.mapping.find(var->name);
+            if(it!=typemap.mapping.end())
+            {
+                auto type=it->second;
+                // we need to add the type to the final type map 
+                final.mapping[var->name+toadd]=type;
+            }
+        }
         InputVariables.push_back(convert1(expr,symtable,toadd));
         return;
     }
@@ -293,29 +302,29 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
     {
         for (auto &arg : func->args)
         {
-            getInputVars(arg, InputVariables, toadd, symtable);
+            getInputVars(arg, InputVariables, toadd, symtable, final, typemap);
         }
     }
     if (auto set = dynamic_cast<Set *>(expr.get()))
     {
         for (auto &element : set->elements)
         {
-            getInputVars(element, InputVariables, toadd, symtable);
+            getInputVars(element, InputVariables, toadd, symtable, final, typemap);
         }
     }
     if (auto tuple = dynamic_cast<Tuple *>(expr.get()))
     {
         for (auto &exp : tuple->expr)
         {
-            getInputVars(exp, InputVariables, toadd, symtable);
+            getInputVars(exp, InputVariables, toadd, symtable,final,typemap);
         }
     }
     if (auto map1 = dynamic_cast<Map *>(expr.get()))
     {
         for (auto &element : map1->value)
         {
-            getInputVars(reinterpret_cast<unique_ptr<Expr> &>(element.first), InputVariables, toadd, symtable);
-            getInputVars(element.second, InputVariables, toadd, symtable);
+            getInputVars(reinterpret_cast<unique_ptr<Expr> &>(element.first), InputVariables, toadd, symtable, final, typemap);
+            getInputVars(element.second, InputVariables, toadd, symtable, final, typemap);
         }
     }
     if (auto num = dynamic_cast<Num *>(expr.get()))
@@ -325,10 +334,14 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
 }
 // all couts are debug statements ignore them 
 // all couts are debug statements ignore them 
-Program convert(const Spec *apispec, SymbolTable symtable){
+Program convert(const Spec *apispec, SymbolTable symtable, TypeMap typemap=TypeMap()){
+    
+    TypeMap finaltm=TypeMap();
+
     vector<unique_ptr<Stmt>> program_stmts;
      cout<<"we got here"<<apispec->blocks.size()<<endl;
     for(int i=0;i<apispec->blocks.size();i++){
+        TypeMap *itm=new TypeMap();
         cout<<"Index: "<<i<<endl;
         SymbolTable *currtable = symtable.children[i];
         cout<<"Implmentation of to_string function"<<endl;
@@ -337,7 +350,7 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         // take the current block its pre condition somewhere, 
         //its post condition somewhere, and its call, response also in variables 
         auto currblock = std::move(const_cast<std::unique_ptr<API>&>(apispec->blocks[i]));
-       
+
         auto pre=std::move(currblock->pre);
         
         auto call=std::move(currblock->call);
@@ -346,13 +359,16 @@ Program convert(const Spec *apispec, SymbolTable symtable){
         
         auto post = std::move(response.expr);
         
-
+        cout<<"Came here1\n";
         // This section sees to that the input variables are made into appropriate statements 
         vector<unique_ptr<Expr>> InputVariables;
         for (int j = 0; j < call->call->args.size(); j++)
         {
-            getInputVars(call->call->args[j], InputVariables, to_string(i), currtable);
+            getInputVars(call->call->args[j], InputVariables, 
+            to_string(i), currtable, finaltm, *(itm));
+
         }
+        cout << "Came here2\n";
         // Making Statements for the input variables 
         // Making Statements for the input variables 
         for(int j=0;j<InputVariables.size();j++){

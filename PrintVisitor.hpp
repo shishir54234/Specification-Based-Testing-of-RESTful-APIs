@@ -411,9 +411,9 @@ public:
     }
     void visit(const Program &node) override{
         cout<<"Program:\n";
-        for(const auto &decls: node.declarations){
-            decls.get()->accept(*this);
-        }
+        // for(const auto &decls: node.declarations){
+        //     decls.get()->accept(*this);
+        // }
         for (const auto &func : node.statements)
         {
             func.get()->accept(*this);

@@ -8,7 +8,7 @@ using std::regex;
 using namespace std;
 
 
-CodeGenerator::CodeGenerator(Visitor *v) : visitor(v) {}
+CodeGenerator::CodeGenerator(ExpoSEVisitor *v) : visitor(v) {}
 
 string CodeGenerator::indent(string line, string istring, int level) {
 	string indentation = "";
@@ -70,12 +70,12 @@ void ExpoSEVisitor::visitExpr(Expr& e) {
 
 // void ExpoSEVisitor::
 
-// void ExpoSEVisitor::visitDecl(Decl& d) {
-//     d.accept(this);
-//     string name = d.name;
-//     string type = pop(strings);
-//     strings.push(type + " " + name);
-// }
+void ExpoSEVisitor::visitDecl(Decl& d) {
+    // d.accept(this);
+    string name = d.name;
+    string type = pop(strings);
+    strings.push(type + " " + name);
+}
 
 // void ExpoSEVisitor::visitFuncDecl(FuncDecl& f) {
 //     f.accept(this);
@@ -100,7 +100,7 @@ void ExpoSEVisitor::visitExpr(Expr& e) {
 
 void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
     // cout<<"reached visit FuncCallStmt"<<endl;
-    f.accept(this);
+    // f.accept(this);
     // cout<<"finished visit FuncCallStmt"<<endl;;
     string fcall = pop(strings);
     strings.push(fcall + ";");
@@ -110,7 +110,7 @@ void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
 void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
     // cout<<"enterred visit FuncCall"<<endl;
     // cout<<"Function Name: "<<f.name<<endl;
-    f.accept(this);
+    // f.accept(this);
 
     vector<string> arguments;
     string name = f.name;
@@ -187,17 +187,17 @@ CodeGenerator::~CodeGenerator() {
     delete visitor;
 }
 
-string Visitor::pop(stack<string>& s) {
+string ExpoSEVisitor::pop(stack<string> &s)
+{
     string str = s.top();
     s.pop();
     return str;
 }
 
-
-string Visitor::retrieve() {
+string ExpoSEVisitor::retrieve()
+{
     return pop(strings);
 }
-
 
 void ExpoSEVisitor::visitStmt(Stmt& s) {
     // cout<<"reached visit Stmt";
@@ -223,7 +223,6 @@ void ExpoSEVisitor::visitAssign(Assign& a) {
     strings.push("var " + v1 + " = " + exp1+ ";");
 }
 
-Visitor::~Visitor() {}
 
 ExpoSEVisitor::~ExpoSEVisitor() {}
 
@@ -241,7 +240,7 @@ void ExpoSEVisitor::visitNum(Num& n) {
 
 void ExpoSEVisitor :: visitProgram(Program& program) {
     // cout<<"entered visit Program";
-    program.accept(this);
+    // program.accept(this);
     string resultantProgram;
     while(!strings.empty()) {
         resultantProgram += pop(strings);
@@ -257,21 +256,21 @@ void ExpoSEVisitor :: visitProgram(Program& program) {
 
 void ExpoSEVisitor::visitMap(Map& m) {
     // cout<<"map\n";
-    // m.accept(this);
+    m.accept(this);
     string map_decl = "new Map();";
     strings.push(map_decl);
 }
 
 void ExpoSEVisitor::visitSet(Set& s) {
-    s.accept(this);
+    // s.accept(this);
     // strings.push(s.name);
 }
 
-void ExpoSEVisitor::visitInit(Init& i) {
+void ExpoSEVisitor::visitInit(Init &i)
+{
     cout<<"init\n";
     i.accept(this);
     string varName = i.varName;
     string expression = pop(strings);
     strings.push("var " + varName + " = " + expression + ";");
 }
-

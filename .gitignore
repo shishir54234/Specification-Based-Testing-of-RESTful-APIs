@@ -3,5 +3,5 @@ ExpoSE/*
 *.exe 
 *.gch
 *.o
-
+*.out
 node_modules/

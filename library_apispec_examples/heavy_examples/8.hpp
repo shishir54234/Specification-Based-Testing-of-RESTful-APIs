@@ -7,10 +7,10 @@
 #include "../../ast.hpp"
 #include "../../algo.hpp"
 
-class GetBookAPI
+class heavyexample8
 {
 public:
-    static void define(vector<unique_ptr<API>> &apis, SymbolTable &root)
+    static void example(vector<unique_ptr<API>> &apis, SymbolTable &root)
     {
         // Precondition: (t -> u in T and u in U)
         vector<unique_ptr<Expr>> args_in1params, args_in2params;
@@ -50,6 +50,7 @@ public:
         // Postcondition: bookCode = bookData.code
         vector<unique_ptr<Expr>> equalsParams;
         equalsParams.push_back(std::make_unique<Var>("bookCode"));
+        getCode
         equalsParams.push_back(std::make_unique<FuncCall>("getCode", vector<unique_ptr<Expr>>{std::make_unique<Var>("bookData")}));
         auto postCondition = std::make_unique<FuncCall>("equals", move(equalsParams));
         

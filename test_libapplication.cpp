@@ -5,7 +5,6 @@
 #include "ast.hpp"
 #include "algo.hpp"
 #include "library_apispec_examples/Entry.hpp"
-#include "jsCodeGen.hpp"
 using namespace std;
 
 void test_everything(){
@@ -22,7 +21,7 @@ void test_everything(){
     // for(auto &stmt:p.statements){
     //     stmts.push_back(move(stmt));
     // }
-    // p.accept(visitor);
+    p.accept(visitor);
     ExpoSECodeGenerator ecg;
 
     cout<<"generating expoSE code:\n";
