@@ -127,11 +127,19 @@ int main()
     {
         // Precondition: in(u, dom(U))
         vector<unique_ptr<Expr>> preArgs;
-        preArgs.push_back(make_unique<Var>("u"));
+        preArgs.push_back(make_unique<Var>("p"));
         vector<unique_ptr<Expr>> h;
         h.push_back(make_unique<Var>("U"));
-        preArgs.push_back(make_unique<FuncCall>("dom", move(h)));
-        auto precondition = make_unique<FuncCall>("in", move(preArgs));
+        h.push_back(make_unique<Var>("u"));
+        preArgs.push_back(make_unique<FuncCall>("mapped_value", move(h)));
+        vector<unique_ptr<Expr>> preArgs0, pre;
+        preArgs0.push_back(make_unique<FuncCall>("equals", move(preArgs)));
+        vector<unique_ptr<Expr>> h2;
+        h2.push_back(make_unique<Var>("T"));
+        h2.push_back(make_unique<Var>("token"));
+        preArgs0.push_back(make_unique<FuncCall>("in_dom", move(h2)));
+        pre.push_back(make_unique<FuncCall>("and_operator", move(preArgs0)));
+        auto precondition = make_unique<FuncCall>("is_false", move(pre));
 
         // API Call: login_notok(u, p)
         vector<unique_ptr<Expr>> apiArgs;
@@ -139,16 +147,16 @@ int main()
         apiArgs.push_back(make_unique<Var>("p"));
         auto apiCallFunc = make_unique<FuncCall>("login_notok", move(apiArgs));
 
-        // Postcondition: not_in(T[u], token)
-        vector<unique_ptr<Expr>> postArgs, postArgs1;
+        // Postcondition: not_in( T[u], token ) i.e. no token is assigned.
+        vector<unique_ptr<Expr>> postArgs, postArgs1, post;
         vector<unique_ptr<Expr>> e2;
-        e2.push_back(make_unique<Var>("T"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for T
-        postArgs1.push_back(make_unique<Var>("u"));
-        postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // T[u]
-        postArgs.push_back(make_unique<Var>("token"));
-        auto postcondition = make_unique<FuncCall>("not_in", move(postArgs));
-
+        // e2.push_back(make_unique<Var>("T"));
+        postArgs1.push_back(make_unique<Var>("T")); // wrapper for T
+        postArgs1.push_back(make_unique<Var>("token"));
+        postArgs.push_back(make_unique<FuncCall>("mapped_value", move(postArgs1))); // represents T[u]
+        postArgs.push_back(make_unique<Var>("u"));
+        post.push_back(make_unique<FuncCall>("equals", move(postArgs)));
+        auto postcondition = make_unique<FuncCall>("is_false", move(post));
         Response response(HTTPResponseCode::BAD_REQUEST_400, move(postcondition));
         auto apiCall = make_unique<APIcall>(move(apiCallFunc), move(response));
         apiBlocks.push_back(make_unique<API>(move(precondition), move(apiCall), move(response)));
@@ -156,30 +164,35 @@ int main()
 
     // 2. login_ok(u, p)
     {
-        // Precondition: in(u, dom(U))
         vector<unique_ptr<Expr>> preArgs;
-        preArgs.push_back(make_unique<Var>("u"));
+        preArgs.push_back(make_unique<Var>("p"));
         vector<unique_ptr<Expr>> h;
         h.push_back(make_unique<Var>("U"));
-        preArgs.push_back(make_unique<FuncCall>("dom", move(h)));
-        auto precondition = make_unique<FuncCall>("in", move(preArgs));
+        h.push_back(make_unique<Var>("u"));
+        preArgs.push_back(make_unique<FuncCall>("mapped_value", move(h)));
+        vector<unique_ptr<Expr>> preArgs0;
+        preArgs0.push_back(make_unique<FuncCall>("equals", move(preArgs)));
+        vector<unique_ptr<Expr>> h2;
+        h2.push_back(make_unique<Var>("T"));
+        h2.push_back(make_unique<Var>("token"));
+        preArgs0.push_back(make_unique<FuncCall>("in_dom", move(h2)));
+        auto precondition = make_unique<FuncCall>("and_operator", move(preArgs0));
 
-        // API Call: login_ok(u, p)
+        // API Call: login_success(u, p)
         vector<unique_ptr<Expr>> apiArgs;
         apiArgs.push_back(make_unique<Var>("u"));
         apiArgs.push_back(make_unique<Var>("p"));
         auto apiCallFunc = make_unique<FuncCall>("login_ok", move(apiArgs));
 
-        // Postcondition: in(T[u], token)
+        // Postcondition: T[u] = token (Token stored in T)
         vector<unique_ptr<Expr>> postArgs, postArgs1;
         vector<unique_ptr<Expr>> e2;
-        e2.push_back(make_unique<Var>("T"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2)));
-        postArgs1.push_back(make_unique<Var>("u"));
-        postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // T[u]
-        postArgs.push_back(make_unique<Var>("token"));
-        auto postcondition = make_unique<FuncCall>("in", move(postArgs));
-
+        // e2.push_back(make_unique<Var>("T"));
+        postArgs1.push_back(make_unique<Var>("T")); // wrapper for T
+        postArgs1.push_back(make_unique<Var>("token"));
+        postArgs.push_back(make_unique<FuncCall>("mapped_value", move(postArgs1))); // represents T[u]
+        postArgs.push_back(make_unique<Var>("u"));
+        auto postcondition = make_unique<FuncCall>("equals", move(postArgs));
         Response response(HTTPResponseCode::OK_200, move(postcondition));
         auto apiCall = make_unique<APIcall>(move(apiCallFunc), move(response));
         apiBlocks.push_back(make_unique<API>(move(precondition), move(apiCall), move(response)));
@@ -188,13 +201,17 @@ int main()
     // 3. do_onboard()
     {
         // Precondition: onboard = false (represented as onboard_false())
-        auto precondition = make_unique<FuncCall>("onboard_false", vector<unique_ptr<Expr>>{});
+        vector<unique_ptr<Expr>> preArgs;
+        preArgs.push_back(make_unique<Var>("onboard"));
+        auto precondition = make_unique<FuncCall>("is_false", move(preArgs));
 
         // API Call: do_onboard()
         auto apiCallFunc = make_unique<FuncCall>("do_onboard", vector<unique_ptr<Expr>>{});
 
         // Postcondition: onboard = true (represented as onboard_true())
-        auto postcondition = make_unique<FuncCall>("onboard_true", vector<unique_ptr<Expr>>{});
+        vector<unique_ptr<Expr>> postArgs;
+        postArgs.push_back(make_unique<Var>("onboard"));
+        auto postcondition = make_unique<FuncCall>("is_true", move(postArgs));
 
         Response response(HTTPResponseCode::OK_200, move(postcondition));
         auto apiCall = make_unique<APIcall>(move(apiCallFunc), move(response));
@@ -203,8 +220,11 @@ int main()
 
     // 4. go_map()
     {
+        vector<unique_ptr<Expr>> preArgs;
+        preArgs.push_back(make_unique<Var>("onboard"));
+        auto precondition = make_unique<FuncCall>("is_true", move(preArgs));
+
         // Precondition: onboard = true (represented as onboard_true())
-        auto precondition = make_unique<FuncCall>("onboard_true", vector<unique_ptr<Expr>>{});
 
         // API Call: go_map()
         auto apiCallFunc = make_unique<FuncCall>("go_map", vector<unique_ptr<Expr>>{});
@@ -227,22 +247,23 @@ int main()
         preArgs.push_back(make_unique<Var>("u"));
         vector<unique_ptr<Expr>> h;
         h.push_back(make_unique<Var>("T"));
-        preArgs.push_back(make_unique<FuncCall>("dom", move(h)));
+        h.push_back(make_unique<Var>("token"));
+        preArgs.push_back(make_unique<FuncCall>("mapped_value", move(h)));
         vector<unique_ptr<Expr>> apiArgs;
         apiArgs.push_back(make_unique<Var>("u"));
-        auto precondition = make_unique<FuncCall>("in", move(preArgs));
+        auto precondition = make_unique<FuncCall>("equals", move(preArgs));
 
         // API Call: logout(username)
         auto apiCallFunc = make_unique<FuncCall>("logout", move(apiArgs));
 
         // Postcondition: not_in(T[username], token)
-        vector<unique_ptr<Expr>> postArgs, postArgs1;
-        vector<unique_ptr<Expr>> e2;
-        e2.push_back(make_unique<Var>("T"));
-        postArgs1.push_back(make_unique<FuncCall>(" ", move(e2))); // wrapper for T
-        postArgs1.push_back(make_unique<Var>("u"));
-        postArgs.push_back(make_unique<FuncCall>("[]", move(postArgs1))); // T[username]
+        vector<unique_ptr<Expr>> postArgs;
         postArgs.push_back(make_unique<Var>("token"));
+        vector<unique_ptr<Expr>> h2;
+        h2.push_back(make_unique<Var>("T"));
+        postArgs.push_back(make_unique<FuncCall>("dom", move(h2)));
+        // vector<unique_ptr<Expr>> apiArgs;
+        // apiArgs.push_back(make_unique<Var>("u"));
         auto postcondition = make_unique<FuncCall>("not_in", move(postArgs));
 
         Response response(HTTPResponseCode::OK_200, move(postcondition));

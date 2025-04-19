@@ -55,21 +55,21 @@ public:
         printIndent();
 
         std::cout << "Domain:\n";
-        if(node.domain){
+        if (node.domain)
+        {
             indent++;
             node.domain->accept(*this);
             indent--;
         }
-        
 
         printIndent();
         std::cout << "Range:\n";
-        if(node.range){
+        if (node.range)
+        {
             indent++;
             node.range->accept(*this);
             indent--;
         }
-        
 
         indent--;
     }
@@ -81,7 +81,8 @@ public:
         indent++;
         for (const auto &elem : node.elements)
         {
-            if(elem)elem->accept(*this);
+            if (elem)
+                elem->accept(*this);
         }
         indent--;
     }
@@ -90,12 +91,12 @@ public:
     {
         printIndent();
         std::cout << "SetType:\n";
-        if(node.elementType){
+        if (node.elementType)
+        {
             indent++;
             node.elementType->accept(*this);
             indent--;
         }
-        
     }
 
     // Expression visitors
@@ -144,7 +145,6 @@ public:
     void visit(const Map &node) override
     {
         printIndent();
-        std::cout << "Map:\n";
         indent++;
         for (const auto &pair : node.value)
         {
@@ -209,7 +209,7 @@ public:
         std::cout << "Declaration: " << node.name << "\n";
         indent++;
         node.type->accept(*this);
-        cout<<"\n";
+        cout << "\n";
         indent--;
     }
     // void visit(const int node) override
@@ -271,17 +271,15 @@ public:
 
         printIndent();
         std::cout << "Response (HTTP Code: " << 123 << "):\n";
-        if (node.response.expr){
+        if (node.response.expr)
+        {
             indent++;
             node.response.expr->accept(*this);
             indent--;
         }
-            
-
-        
     }
 
-    void visit(const API &node) override    
+    void visit(const API &node) override
     {
         printIndent();
         std::cout << "API:\n";
@@ -302,7 +300,8 @@ public:
         printIndent();
         // std::cout << "Response (HTTP Code: " << static_cast<int>(node.response.code) << "):\n";
         indent++;
-        if(node.response.expr)node.response.expr->accept(*this);
+        if (node.response.expr)
+            node.response.expr->accept(*this);
         indent--;
 
         indent--;
@@ -312,13 +311,13 @@ public:
         printIndent();
         std::cout << "Response (HTTP Code: " << 123 << "):\n";
         cout << "HELLO\n";
-        if(node.expr){
-            cout<<"HELLO\n";
+        if (node.expr)
+        {
+            cout << "HELLO\n";
             indent++;
             node.expr->accept(*this);
             indent--;
         }
-        
     }
     // Initialization visitor
     void visit(const Init &node) override
@@ -387,33 +386,47 @@ public:
 
         indent--;
     }
-    void visit(const Assign &node) override{
-        cout<<"Assign: ";
+    void visit(const Assign &node) override
+    {
+        cout << "Assign: ";
         if (node.left) // Check if left is not null
             node.left->accept(*this);
         else
             std::cout << "<null_var>";
-        cout<<" = ";
+        cout << " = ";
 
-        if(node.right){
+        if (node.right)
+        {
             node.right->accept(*this);
         }
-        else{
+        else
+        {
             std::cout << "<null_expr>";
         }
-        cout<<"\n";
+        cout << "\n";
     }
 
-    void visit(const FuncCallStmt &node) override{
-        cout<<"FuncCallStmt: ";
+    void visit(const FuncCallStmt &node) override
+    {
+        cout << "FuncCallStmt: ";
         node.call->accept(*this);
-        cout<<"\n";
+        cout << "\n";
     }
+<<<<<<< HEAD
     void visit(const Program &node) override{
         cout<<"Program:\n";
         // for(const auto &decls: node.declarations){
         //     decls.get()->accept(*this);
         // }
+=======
+    void visit(const Program &node) override
+    {
+        cout << "Program:\n";
+        for (const auto &decls : node.declarations)
+        {
+            decls.get()->accept(*this);
+        }
+>>>>>>> origin/mocking
         for (const auto &func : node.statements)
         {
             func.get()->accept(*this);
