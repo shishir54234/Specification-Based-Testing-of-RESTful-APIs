@@ -562,7 +562,7 @@ class Stmt
 public:
     virtual ~Stmt() = default;
     virtual void accept(ASTVisitor &visitor) const = 0;
-
+    virtual void accept(ExpoSEVisitor *visitor) const = 0;
     StatementType statementType;
 
 protected:
@@ -580,7 +580,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor)
+    void accept(ExpoSEVisitor *visitor) const override
     {
         visitor->visitVar(*left);
         visitor->visitExpr(*right);
@@ -600,8 +600,9 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor)
+    void accept(ExpoSEVisitor *visitor) const override
     {
+        cout<<"Hey funcCall\n"; 
         visitor->visitFuncCall(*call);
     }
 

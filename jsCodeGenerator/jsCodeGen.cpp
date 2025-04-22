@@ -18,12 +18,28 @@ string CodeGenerator::indent(string line, string istring, int level) {
 	line = indentation + line;
 	return line;
 }
-
+string ExpoSEVisitor::retrieve()
+{
+    if(strings.empty())
+    {
+        cout<<"strings is empty"<<endl; return "";
+    }
+    std::cout << strings.size() << std::endl;
+    return pop(strings);
+}
+string ExpoSEVisitor::pop(stack<string> &s)
+{
+    string top = s.top();
+    s.pop();
+    return top;
+}
 string CodeGenerator::generateCode(Program& program) {
     visitor->visitProgram(program);
+
     string raw = visitor->retrieve();
-    // cout<<"This is raw string"<<endl;
-    // cout<<raw<<endl;
+    // std::cout << strings.size() << std::endl;
+    cout<<"This is raw string"<<endl;
+    cout<<raw<<endl;
     regex del("\n");
     sregex_token_iterator it(raw.begin(), raw.end(), del, -1);
     sregex_token_iterator end;
@@ -109,12 +125,12 @@ void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
 
 void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
     // cout<<"enterred visit FuncCall"<<endl;
-    // cout<<"Function Name: "<<f.name<<endl;
+    cout<<"Function Name: "<<f.name<<endl;
     // f.accept(this);
 
     vector<string> arguments;
     string name = f.name;
-
+    cout<<f.name<<endl;
     // cout<<"Function Name: "<<f.name<<endl;
 
     string args = "";
@@ -125,7 +141,7 @@ void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
         // cout<<argstr<<" ";
     }
     // cout<<endl;
-    args.pop_back();
+    if(args.size())args.pop_back();
 
     if(f.name == "assume"){
         name = "S$.assume";
@@ -187,17 +203,7 @@ CodeGenerator::~CodeGenerator() {
     delete visitor;
 }
 
-string ExpoSEVisitor::pop(stack<string> &s)
-{
-    string str = s.top();
-    s.pop();
-    return str;
-}
 
-string ExpoSEVisitor::retrieve()
-{
-    return pop(strings);
-}
 
 void ExpoSEVisitor::visitStmt(Stmt& s) {
     // cout<<"reached visit Stmt";
@@ -217,7 +223,7 @@ void ExpoSEVisitor::visitStmt(Stmt& s) {
 
 void ExpoSEVisitor::visitAssign(Assign& a) {
     // cout<<"reached visit Assign";
-    a.accept(this);
+    // a.accept(this);
     string v1 = pop(strings);
     string exp1 = pop(strings);
     strings.push("var " + v1 + " = " + exp1+ ";");
@@ -227,20 +233,28 @@ void ExpoSEVisitor::visitAssign(Assign& a) {
 ExpoSEVisitor::~ExpoSEVisitor() {}
 
 void ExpoSEVisitor::visitVar(Var& v) {
-    v.accept(this);
+    // v.accept(this);
     string a = v.name;
     // cout<<"Yo this is name:"<<a<<endl;
     strings.push(v.name);
 }
 
 void ExpoSEVisitor::visitNum(Num& n) {
-    n.accept(this);
+    // n.accept(this);
     strings.push(to_string(n.value));
 }
 
 void ExpoSEVisitor :: visitProgram(Program& program) {
     // cout<<"entered visit Program";
     // program.accept(this);
+    int cnt=0;
+    for(auto& stmt : program.statements) 
+    {
+        cout<<cnt++<<endl;
+        cout << "This statement is an instance of " << typeid(*stmt).name() << endl;
+        
+        stmt->accept(this);
+    }
     string resultantProgram;
     while(!strings.empty()) {
         resultantProgram += pop(strings);
@@ -256,7 +270,7 @@ void ExpoSEVisitor :: visitProgram(Program& program) {
 
 void ExpoSEVisitor::visitMap(Map& m) {
     // cout<<"map\n";
-    m.accept(this);
+    // m.accept(this);
     string map_decl = "new Map();";
     strings.push(map_decl);
 }
@@ -269,7 +283,7 @@ void ExpoSEVisitor::visitSet(Set& s) {
 void ExpoSEVisitor::visitInit(Init &i)
 {
     cout<<"init\n";
-    i.accept(this);
+    // i.accept(this);
     string varName = i.varName;
     string expression = pop(strings);
     strings.push("var " + varName + " = " + expression + ";");
