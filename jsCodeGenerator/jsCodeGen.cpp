@@ -29,6 +29,7 @@ string ExpoSEVisitor::retrieve()
 }
 string ExpoSEVisitor::pop(stack<string> &s)
 {
+    if(s.empty()) return "";
     string top = s.top();
     s.pop();
     return top;
@@ -116,7 +117,7 @@ void ExpoSEVisitor::visitDecl(Decl& d) {
 
 void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
     // cout<<"reached visit FuncCallStmt"<<endl;
-    // f.accept(this);
+    (f.call)->accept(this);
     // cout<<"finished visit FuncCallStmt"<<endl;;
     string fcall = pop(strings);
     strings.push(fcall + ";");
@@ -125,14 +126,17 @@ void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
 
 void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
     // cout<<"enterred visit FuncCall"<<endl;
-    cout<<"Function Name: "<<f.name<<endl;
+    // cout<<"Function Name: "<<f.name<<endl;
     // f.accept(this);
 
     vector<string> arguments;
     string name = f.name;
     cout<<f.name<<endl;
     // cout<<"Function Name: "<<f.name<<endl;
-
+    for(auto& arg : f.args) 
+    {
+        arg->accept(this);
+    }
     string args = "";
     for(auto& arg : f.args) {
         string argstr = pop(strings);
@@ -184,17 +188,17 @@ void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
         return;
     }
 
-    if(f.name == "getStudent"){ //example of getRequest
-        string apiNumber = "1";// need to get it convertfunction again from atc
-        string apiUrl = "http://localhost:5000/getStudent"; //need to get it from atc
-        string comma_seperated_args = "arg1: 22, arg2: 22, arg3: 22"; //need to get this from the arguments
-        string list_of_args = "{" + comma_seperated_args + "}";
-        string call = "fetchData( \"" + apiUrl + "\" , " + list_of_args + ")";
-        string apicall = "var result" + apiNumber + " = " + call;
+    // if(f.name == "getStudent"){ //example of getRequest
+    //     string apiNumber = "1";// need to get it convertfunction again from atc
+    //     string apiUrl = "http://localhost:5000/getStudent"; //need to get it from atc
+    //     string comma_seperated_args = "arg1: 22, arg2: 22, arg3: 22"; //need to get this from the arguments
+    //     string list_of_args = "{" + comma_seperated_args + "}";
+    //     string call = "fetchData( \"" + apiUrl + "\" , " + list_of_args + ")";
+    //     string apicall = "var result" + apiNumber + " = " + call;
         
-        strings.push(apicall);
-        return;
-    }
+    //     strings.push(apicall);
+    //     return;
+    // }
 
     strings.push(name + "(" + args + ")");
     // cout<<"exiting visit FuncCall"<<endl;
@@ -243,15 +247,19 @@ void ExpoSEVisitor::visitNum(Num& n) {
     // n.accept(this);
     strings.push(to_string(n.value));
 }
+void ExpoSEVisitor::visitString(String &s)
+{
+    strings.push(s.value);
+}
 
 void ExpoSEVisitor :: visitProgram(Program& program) {
     // cout<<"entered visit Program";
     // program.accept(this);
     int cnt=0;
-    for(auto& stmt : program.statements) 
+    for(auto& stmt : program.statements)  
     {
         cout<<cnt++<<endl;
-        cout << "This statement is an instance of " << typeid(*stmt).name() << endl;
+        // cout << "This statement is an instance of " << typeid(*stmt).name() << endl;
         
         stmt->accept(this);
     }

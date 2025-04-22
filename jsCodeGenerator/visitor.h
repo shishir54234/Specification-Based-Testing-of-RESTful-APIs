@@ -23,6 +23,7 @@ class Num;
 class Set;
 class Map;
 class Tuple;
+class String;
 class PolymorphicFuncCall;
 class Decl;
 class FuncDecl;
@@ -64,6 +65,7 @@ public:
     void visitNum(Num &);
     void visitSet(Set &);
     void visitMap(Map &);
+    void visitString(String &);
     // virtual void visitTuple(Tuple&);
     // virtual void visitFuncDecl(FuncDecl&);
     void visitInit(Init &);

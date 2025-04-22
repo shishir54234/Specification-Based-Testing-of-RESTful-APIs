@@ -60,8 +60,8 @@ class TypeExpr
 {
 public:
     virtual ~TypeExpr() = default;
-    virtual void accept(ASTVisitor &visitor) const = 0;
-    virtual std::unique_ptr<TypeExpr> clone() const = 0;
+    virtual void accept(ASTVisitor &visitor) = 0;
+    virtual std::unique_ptr<TypeExpr> clone() = 0;
     TypeExpression typeExpression;
 
 protected:
@@ -73,7 +73,7 @@ class TypeConst : public TypeExpr
 {
 public:
     explicit TypeConst(std::string name) : TypeExpr(TypeExpression::TYPE_CONST), name(std::move(name)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor) override
     {
         visitor.visit(*this);
     }
@@ -81,7 +81,7 @@ public:
     void accept(ExpoSEVisitor *visitor)
     {
     }
-    std::unique_ptr<TypeExpr> clone() const override
+    std::unique_ptr<TypeExpr> clone() override
     {
         return std::make_unique<TypeConst>(name);
     }
@@ -93,7 +93,7 @@ class FuncType : public TypeExpr
 public:
     FuncType(std::vector<std::unique_ptr<TypeExpr>> params, std::unique_ptr<TypeExpr> returnType)
         : TypeExpr(TypeExpression::FUNC_TYPE), params(std::move(params)), returnType(std::move(returnType)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor) override
     {
         visitor.visit(*this);
     }
@@ -106,10 +106,10 @@ public:
         }
         // visitor->visitTypeExpr(*returnType);
     }
-    std::unique_ptr<TypeExpr> clone() const override
+    std::unique_ptr<TypeExpr> clone() override
     {
         std::vector<std::unique_ptr<TypeExpr>> clonedParams;
-        for (const auto &param : params)
+        for (auto &param : params)
         {
             clonedParams.push_back(param->clone());
         }
@@ -126,7 +126,7 @@ class MapType : public TypeExpr
 public:
     MapType(std::unique_ptr<TypeExpr> domain, std::unique_ptr<TypeExpr> range)
         : TypeExpr(TypeExpression::MAP_TYPE), domain(std::move(domain)), range(std::move(range)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor) override
     {
         visitor.visit(*this);
     }
@@ -136,7 +136,7 @@ public:
         // visitor->visitTypeExpr(*domain);
         // visitor->visitTypeExpr(*range);
     }
-    std::unique_ptr<TypeExpr> clone() const override
+    std::unique_ptr<TypeExpr> clone() override
     {
         auto clonedDomain = domain ? domain->clone() : nullptr;
         auto clonedRange = range ? range->clone() : nullptr;
@@ -152,7 +152,7 @@ class TupleType : public TypeExpr
 public:
     explicit TupleType(std::vector<std::unique_ptr<TypeExpr>> elements)
         : TypeExpr(TypeExpression::TUPLE_TYPE), elements(std::move(elements)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor) override
     {
         visitor.visit(*this);
     }
@@ -165,10 +165,10 @@ public:
         }
     }
     // Clone implementation for TupleType
-    std::unique_ptr<TypeExpr> clone() const override
+    std::unique_ptr<TypeExpr> clone() override
     {
         std::vector<std::unique_ptr<TypeExpr>> clonedElements;
-        for (const auto &element : elements)
+        for ( auto &element : elements)
         {
             clonedElements.push_back(element->clone());
         }
@@ -183,7 +183,7 @@ class SetType : public TypeExpr
 public:
     explicit SetType(std::unique_ptr<TypeExpr> elementType)
         : TypeExpr(TypeExpression::SET_TYPE), elementType(std::move(elementType)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor) override
     {
         visitor.visit(*this);
     }
@@ -192,7 +192,7 @@ public:
     {
         // visitor->visitTypeExpr(*elementType);
     }
-    std::unique_ptr<TypeExpr> clone() const override
+    std::unique_ptr<TypeExpr> clone()  override
     {
         auto clonedElementType = elementType ? elementType->clone() : nullptr;
         return std::make_unique<SetType>(std::move(clonedElementType));
@@ -215,7 +215,7 @@ public:
         // visitor->visitTypeExpr(*type);
     }
     // Copy constructor for deep copying.
-    Decl(const Decl &other)
+    Decl( Decl &other)
         : name(other.name)
     {
         if (other.type)
@@ -224,7 +224,7 @@ public:
             type = other.type->clone();
         }
     }
-    virtual std::unique_ptr<Decl> clone() const
+    virtual std::unique_ptr<Decl> clone() 
     {
         return std::make_unique<Decl>(*this);
     }
@@ -237,59 +237,27 @@ class Expr
 {
 public:
     virtual ~Expr() = default;
-    virtual void accept(ASTVisitor& visitor) const = 0;
-
+    virtual void accept(ASTVisitor& visitor) = 0;
+    virtual void accept(ExpoSEVisitor *visitor) =0;
     ExpressionType expressionType;
 
 protected:
     Expr(ExpressionType exprType) : expressionType(exprType) {}
 };
-// class PolymorphicFuncCall : public Expr
-// {
-// public:
-//     PolymorphicFuncCall(
-//         std::string name,
-//         std::vector<std::unique_ptr<TypeExpr>> typeArgs,
-//         std::vector<std::unique_ptr<Expr>> args) : 
-//         Expr(ExpressionType::POLYMORPHIC_FUNCTIONCALL_EXPR), name(std::move(name)),
-//                                                    typeArgs(std::move(typeArgs)),
-//                                                    args(std::move(args)) {}
 
-// //     std::string name;                                // Name of the polymorphic function
-// //     std::vector<std::unique_ptr<TypeExpr>> typeArgs; // Type arguments for polymorphism
-// //     std::vector<std::unique_ptr<Expr>> args;         // Regular arguments
-// //     void accept(ASTVisitor &visitor) const override
-// //     {
-// //         visitor.visit(*this);
-// //     }
-
-//     void accept(ExpoSEVisitor *visitor)
-//     {
-//         for (auto &typeArg : typeArgs)
-//         {
-//             // visitor->visitTypeExpr(*typeArg);
-//         }
-
-//         for (auto &arg : args)
-//         {
-//             visitor->visitExpr(*arg);
-//         }
-//     }
-// };
 class Var : public Expr
 {
 public:
     explicit Var(std::string name) : Expr(ExpressionType::VAR), name(std::move(name)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor)  override
     {
         visitor.visit(*this);
     }
-    bool operator<(const Var &other) const
+    bool operator<(const Var &v) const
     {
-        return name < other.name; // Lexicographical comparison
+        return name < v.name;
     }
-
-    void accept(ExpoSEVisitor *visitor)
+    void accept(ExpoSEVisitor *visitor) override
     {
     }
     std::string name;
@@ -300,12 +268,12 @@ class FuncCall : public Expr
 public:
     FuncCall(std::string name, std::vector<std::unique_ptr<Expr>> args)
         : Expr(ExpressionType::FUNCTIONCALL_EXPR), name(std::move(name)), args(std::move(args)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor)  override
     {
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor)
+    void accept(ExpoSEVisitor *visitor) override
     {
         for (auto &arg : args)
         {
@@ -320,12 +288,12 @@ class Num : public Expr
 {
 public:
     explicit Num(int value) : Expr(ExpressionType::NUM), value(value) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor) override
     {
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor)
+    void accept(ExpoSEVisitor *visitor) override
     {
         visitor->visitNum(*this);
     }
@@ -337,11 +305,14 @@ class String : public Expr
 {
 public:
     explicit String(string value) : Expr(ExpressionType::STRING), value(value) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor)  override
     {
         visitor.visit(*this);
     }
-
+    void accept(ExpoSEVisitor *visitor) override
+    {
+        // visitor->visitString(*this);
+    }
     string value;
 };
 
@@ -350,12 +321,12 @@ class Set : public Expr
 public:
     explicit Set(std::vector<std::unique_ptr<Expr>> elements)
         : Expr(ExpressionType::SET), elements(std::move(elements)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor)  override
     {
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor)
+    void accept(ExpoSEVisitor *visitor) override
     {
         for (auto &e : elements)
         {
@@ -369,12 +340,12 @@ class Map : public Expr
 {
 public:
     explicit Map(std::vector<std::pair<std::unique_ptr<Var>, std::unique_ptr<Expr>>>) : Expr(ExpressionType::MAP), value(std::move(value)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor)  override
     {
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor)
+    void accept(ExpoSEVisitor *visitor) override
     {
         for (auto &v : value)
         {
@@ -390,7 +361,7 @@ class Tuple : public Expr
 {
 public:
     explicit Tuple(std::vector<std::unique_ptr<Expr>> exprs) : Expr(ExpressionType::TUPLE), expr(std::move(expr)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor)  override
     {
         visitor.visit(*this);
     }
@@ -413,7 +384,7 @@ public:
              std::vector<std::unique_ptr<TypeExpr>> params,
              std::pair<HTTPResponseCode, vector<std::unique_ptr<TypeExpr>>> returnType)
         : name(std::move(name)), params(std::move(params)), returnType(std::move(returnType)) {}
-    void accept(ASTVisitor &visitor) const
+    void accept(ASTVisitor &visitor) 
     {
         visitor.visit(*this);
     }
@@ -441,7 +412,7 @@ class Init
 public:
     Init(std::string varName, std::unique_ptr<Expr> expression)
         : varName(std::move(varName)), expr(std::move(expression)) {}
-    void accept(ASTVisitor &visitor) const
+    void accept(ASTVisitor &visitor) 
     {
         visitor.visit(*this);
     }
@@ -460,7 +431,7 @@ public:
     HTTPResponseCode code;
     std::unique_ptr<Expr> expr;
     Response(HTTPResponseCode code, std::unique_ptr<Expr> expr) : code(code), expr(std::move(expr)) {};
-    void accept(ASTVisitor &visitor) const
+    void accept(ASTVisitor &visitor) 
     {
         visitor.visit(*this);
     }
@@ -476,7 +447,7 @@ class APIcall
 public:
     std::unique_ptr<FuncCall> call;
     Response response;
-    void accept(ASTVisitor &visitor) const
+    void accept(ASTVisitor &visitor) 
     {
         visitor.visit(*this);
     }
@@ -497,7 +468,7 @@ public:
         std::unique_ptr<APIcall> functionCall,
         Response response)
         : pre(std::move(precondition)), call(std::move(functionCall)), response(std::move(response)) {}
-    void accept(ASTVisitor &visitor) const
+    void accept(ASTVisitor &visitor) 
     {
         visitor.visit(*this);
     }
@@ -526,7 +497,7 @@ public:
         : globals(std::move(globals)), init(std::move(init)), functions(std::move(functions)), blocks(std::move(blocks))
     {
     }
-    void accept(ASTVisitor &visitor) const
+    void accept(ASTVisitor &visitor) 
     {
         visitor.visit(*this);
     }
@@ -561,8 +532,8 @@ class Stmt
 {
 public:
     virtual ~Stmt() = default;
-    virtual void accept(ASTVisitor &visitor) const = 0;
-    virtual void accept(ExpoSEVisitor *visitor) const = 0;
+    virtual void accept(ASTVisitor &visitor)  = 0;
+    virtual void accept(ExpoSEVisitor *visitor)  = 0;
     StatementType statementType;
 
 protected:
@@ -575,12 +546,12 @@ class Assign : public Stmt
 public:
     Assign(std::unique_ptr<Var> left, std::unique_ptr<Expr> right)
         : Stmt(StatementType::ASSIGN), left(std::move(left)), right(std::move(right)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor)  override
     {
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor) const override
+    void accept(ExpoSEVisitor *visitor)  override
     {
         visitor->visitVar(*left);
         visitor->visitExpr(*right);
@@ -595,12 +566,12 @@ class FuncCallStmt : public Stmt
 public:
     explicit FuncCallStmt(std::unique_ptr<FuncCall> call)
         : Stmt(StatementType::FUNCTIONCALL_STMT), call(std::move(call)) {}
-    void accept(ASTVisitor &visitor) const override
+    void accept(ASTVisitor &visitor)  override
     {
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor) const override
+    void accept(ExpoSEVisitor *visitor)  override
     {
         cout<<"Hey funcCall\n"; 
         visitor->visitFuncCall(*call);
@@ -628,7 +599,7 @@ public:
         // }
 
         for (auto &stmt : statements)
-        { // Use const reference to avoid unnecessary copies
+        { // Use  reference to avoid unnecessary copies
             visitor->visitStmt(*stmt);
         }
     }
