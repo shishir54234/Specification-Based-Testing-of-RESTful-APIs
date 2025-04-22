@@ -106,7 +106,7 @@ int main()
         h.push_back(make_unique<Var>("U"));
         preArgs.push_back(make_unique<FuncCall>("dom", move(h)));
         auto precondition = make_unique<FuncCall>("not_in", move(preArgs));
-
+        // u not in dom U
         // API Call: signup_success(u, p)
         vector<unique_ptr<Expr>> apiArgs;
         apiArgs.push_back(make_unique<Var>("u"));

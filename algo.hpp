@@ -334,6 +334,10 @@ void getInputVars(unique_ptr<Expr> &expr,vector<unique_ptr<Expr>> &InputVariable
 }
 // all couts are debug statements ignore them 
 // all couts are debug statements ignore them 
+// uid = <input>()
+// uid , p -> uid1, p1 
+// ASSUME( pre conditions )
+// signup (uid, p)
 Program convert(const Spec *apispec, SymbolTable symtable, TypeMap typemap=TypeMap()){
     
     TypeMap finaltm=TypeMap();
@@ -344,11 +348,11 @@ Program convert(const Spec *apispec, SymbolTable symtable, TypeMap typemap=TypeM
         TypeMap *itm=new TypeMap();
         cout<<"Index: "<<i<<endl;
         SymbolTable *currtable = symtable.children[i];
-        cout<<"Implmentation of to_string function"<<endl;
-        // cout<<symtable.children[i]<<endl;
-        cout<<currtable->to_string()<<endl;
-        // take the current block its pre condition somewhere, 
-        //its post condition somewhere, and its call, response also in variables 
+        // cout<<"Implmentation of to_string function"<<endl;
+        // // cout<<symtable.children[i]<<endl;
+        // cout<<currtable->to_string()<<endl;
+        // // take the current block its pre condition somewhere, 
+        // //its post condition somewhere, and its call, response also in variables 
         auto currblock = std::move(const_cast<std::unique_ptr<API>&>(apispec->blocks[i]));
 
         auto pre=std::move(currblock->pre);
@@ -378,8 +382,6 @@ Program convert(const Spec *apispec, SymbolTable symtable, TypeMap typemap=TypeM
         cout<<"We made it here"<<endl;
         // we change the variables names here appropriately for e.g. adding uid --> uid + (i), but not changing
         // the global variables
-        // we change the variables names here appropriately for e.g. adding uid --> uid + (i), but not changing
-        // the global variables
         auto pre1=convert1(pre,currtable,to_string(i));
         auto callexpr = std::make_unique<FuncCall>(call->call->name, std::move(call->call->args));
         auto call1=convert1(reinterpret_cast<unique_ptr<Expr>&>(callexpr),currtable,to_string(i));
@@ -387,7 +389,10 @@ Program convert(const Spec *apispec, SymbolTable symtable, TypeMap typemap=TypeM
         cout << "before this it works" << endl;
 
         // we get those global variable names where we have to add the ' to them 
-
+        // U' = U union {uid -> p}
+        // U_old = U
+        // api call
+        // U = U_old union {uid -> p}
         // we get those global variable names where we have to add the ' to them 
         set<string> res;
         PrintVisitor p;
