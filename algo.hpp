@@ -8,45 +8,10 @@
 using namespace std;
 #include "ast.hpp"
 #include "PrintVisitor.hpp"
+#include "symbol_table.hpp"
 #ifndef ALGO_HPP
 #define ALGO_HPP
-class SymbolTable
-{
-public:
-    vector<SymbolTable *> children;
-    SymbolTable *par;
-    set<Var> symtable;
-    bool exists(Var v)
-    {
-        if (symtable.find(v) == symtable.end())
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
 
-    string to_string(){
-        string s="";
-        cout<<"Number of elements here are"<<symtable.size()<<endl;
-        for(auto &var:symtable){
-            cout<<var.name<<" ";
-            s+=var.name;
-        }
-        cout<<"The final string is"<<s<<" "<<endl;
-        return s;
-    }
-};
-class TypeMap
-{
-   public:
-    TypeMap* par;
-    vector<TypeMap *> children;
-    // Mapping from a variable name to its type 
-    map<string, TypeExpr *>mapping;
-};
 // linear
 unique_ptr<Expr> convert1(unique_ptr<Expr> &expr, SymbolTable *symtable, const string &add)
 {

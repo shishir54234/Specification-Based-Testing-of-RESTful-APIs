@@ -5,6 +5,7 @@
 #include "ast.hpp"
 #include "algo.hpp"
 #include "library_apispec_examples/Entry.hpp"
+#include "./symbol_table.hpp"
 using namespace std;
 
 void test_everything(){

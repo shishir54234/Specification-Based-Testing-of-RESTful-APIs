@@ -3,8 +3,9 @@
 #include <vector>
 #include "./ast.hpp"
 #include "./IMA.hpp"
-#include "./PrintVisitor.hpp"
+// #include "./PrintVisitor.hpp"
 #include "jsCodeGen.hpp"
+#include "./symbol_table.hpp"
 
 using namespace std;
 
@@ -14,13 +15,18 @@ int main()
     // 1. Build the client program AST.
     // -------------------------------
     vector<unique_ptr<Stmt>> stmts;
-    vector<unique_ptr<Decl>> decls;
+    SymbolTable symtable;
+    TypeMap typemap;
 
     // Statement 1: string username;
     {
-        auto stringType = std::make_unique<TypeConst>("string");
-        auto userDecl = std::make_unique<Decl>("username", stringType->clone());
-        decls.push_back(move(userDecl));
+
+        if (!symtable.exists(Var("username"))) {
+            symtable.symtable.insert(Var("username"));
+            TypeExpr* stringType = new TypeConst("string");
+            typemap.mapping["username"] = stringType;
+        }
+        
     }
 
     // Statement 2: username = input()
@@ -35,9 +41,11 @@ int main()
 
     // Statement 3: string password;
     {
-        auto stringType = std::make_unique<TypeConst>("string");
-        auto passDecl = std::make_unique<Decl>("password", stringType->clone());
-        decls.push_back(move(passDecl));
+        if (!symtable.exists(Var("password"))) {
+            symtable.symtable.insert(Var("password"));
+            TypeExpr* stringType = new TypeConst("string");
+            typemap.mapping["password"] = stringType;
+        }
     }
 
     // Statement 4: password = input()
@@ -90,7 +98,7 @@ int main()
         stmts.push_back(move(loginStmt));
     }
 
-    Program clientProgram(move(stmts), move(decls));
+    Program clientProgram(move(stmts));
 
     // -------------------------------
     // 2. Build the API specification AST.
@@ -196,9 +204,17 @@ int main()
     // 4. Run IMA algorithm & Print result.
     // -------------------------------
 
-    Program transformed = IMA(clientProgram, spec);
+    Program transformed = IMA(clientProgram, spec, symtable,typemap);
     jsCodeGen printer;
     transformed.accept(printer);
+    // PrintVisitor visitor;
+
+    // transformed.accept(visitor);
+    // ExpoSECodeGenerator ecg;
+
+    // cout<<"generating expoSE code:\n";
+    // string code = ecg.generateCode(transformed);
+    // cout << code;
 
     return 0;
 }

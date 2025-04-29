@@ -103,10 +103,10 @@ public:
     {
         std::cout <<node.name;
     }
-    // void visit(const String &node) override
-    // {
-    //     std::cout <<  quoted(node.value) ;
-    // }
+    void visit(const String &node) override
+    {
+        std::cout <<  quoted(node.value) ;
+    }
 
     void visit(const FuncCall &node) override
     {

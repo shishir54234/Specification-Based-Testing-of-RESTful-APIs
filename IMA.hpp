@@ -9,6 +9,7 @@
 #include <memory>
 #include "ast.hpp"       
 #include "PrintVisitor.hpp"   
+#include "symbol_table.hpp"
 
 using namespace std;
 
@@ -18,26 +19,6 @@ using namespace std;
  */
 using Env = map<string, string>;
 
-class SymbolTable
-{
-public:
-    vector<SymbolTable *> children;
-    SymbolTable *par = nullptr;
-    set<Var> symtable;
-    bool exists(Var v)
-    {
-        return (symtable.find(v) != symtable.end());
-    }
-    string to_string()
-    {
-        string s;
-        for (auto &var : symtable)
-        {
-            s += var.name + " ";
-        }
-        return s;
-    }
-};
 
 /**
  * convert1:
@@ -324,24 +305,33 @@ Env createTau(const vector<string> &formalParams, const vector<string> &actualPa
  */
 
 
-Program IMA(const Program &p, const Spec &spec) {
+Program IMA(const Program &p, const Spec &spec,SymbolTable& symtable, TypeMap& typemap) {
     vector<unique_ptr<Stmt>> newStmts;
-    vector<unique_ptr<Decl>> declarations;
+    // vector<unique_ptr<Decl>> declarations;
 
     vector<unique_ptr<Program>> ProgramCodes;
 
     for (const auto &decl : spec.globals) {
-        declarations.push_back(decl->clone());
+        // declarations.push_back(decl->clone());
+        if(!symtable.exists(Var(decl->name))){
+            symtable.symtable.insert(Var(decl->name));
+            auto cloned = decl->type->clone();  
+            TypeExpr* raw   = cloned.release();     
+
+            typemap.mapping[decl->name]=raw;
+        }
+
     }
-    for (const auto &decl : p.declarations)
-    {
-        declarations.push_back(decl->clone());
-    }
+    // for (const auto &decl : p.declarations)
+    // {
+    //     declarations.push_back(decl->clone());
+    // }
     for (const auto &inits : spec.init)
-    { // here im assuming i wont be using init of specs again after.
+    { 
+
         std::unique_ptr<Var> var = std::make_unique<Var>(inits->varName);
-        std::unique_ptr<Expr> expr = std::move(inits->expr);
-        newStmts.push_back(std::make_unique<Assign>(std::move(var), std::move(expr)));
+        // std::unique_ptr<Expr> expr = inits->expr;
+        newStmts.push_back(std::make_unique<Assign>(std::move(var), std::move(inits->expr->clone())));
     }
 
     // Iterate over each statement in the program.
@@ -432,7 +422,8 @@ Program IMA(const Program &p, const Spec &spec) {
         //     newStmts.push_back(make_unique<FuncCallStmt>(move(assertCall)));
         // }
     }
-    return Program(move(newStmts), move(declarations));
+    
+    return Program(move(newStmts));
 }
 
 #endif
