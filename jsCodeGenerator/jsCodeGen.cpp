@@ -1,10 +1,18 @@
 #include <iostream>
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <memory>
+#include <utility>
+#include <stdexcept>
+#include <map>
+#include <vector>
+#include <set>
 
 #include "jsCodeGen.h"
 #include "../ast.hpp"
 
-using std::regex;
+// using std::regex;
 using namespace std;
 
 

@@ -412,21 +412,9 @@ public:
         node.call->accept(*this);
         cout << "\n";
     }
-<<<<<<< HEAD
-    void visit(const Program &node) override{
-        cout<<"Program:\n";
-        // for(const auto &decls: node.declarations){
-        //     decls.get()->accept(*this);
-        // }
-=======
     void visit(const Program &node) override
     {
         cout << "Program:\n";
-        for (const auto &decls : node.declarations)
-        {
-            decls.get()->accept(*this);
-        }
->>>>>>> origin/mocking
         for (const auto &func : node.statements)
         {
             func.get()->accept(*this);

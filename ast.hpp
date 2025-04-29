@@ -2,13 +2,23 @@
 #include <vector>
 #include <memory>
 #include <utility>
+// Replace <bits/stdc++.h> with specific headers
+#include <iostream>
+#include <vector>
+#include <string>
+#include <memory>
+#include <utility>
+#include <stdexcept>
+#include <map>
+#include <vector>
+#include <set>
 #include "ASTVis.hpp"
 #include "jsCodeGenerator/visitor.h"
 // --------------------- PLEASE READ THIS BEFORE PROCEEDING ---------------------------------------
 
 // ASTvisitor ====> virtual class, printervisitor==> implementation of AST visitor and is used to convert the whole thing into a string 
 // ExpoSEVisitor Class for jsCode generation.
-using namespace std;
+// using namespace std;
 #ifndef AST_HPP
 #define AST_HPP
 
@@ -48,14 +58,6 @@ enum StatementType
     DECL,
 };
 
-class fundecl
-{
-public:
-    std::string name;
-    std::unique_ptr<TypeExpr> params;
-    std::unique_ptr<TypeExpr> outp;
-    fundecl(std::string name, std::unique_ptr<TypeExpr> param, std::unique_ptr<TypeExpr> outp) : name(std::move(name)), params(std::move(param)), outp(std::move(outp)) {};
-};
 class TypeExpr
 {
 public:
@@ -66,6 +68,14 @@ public:
 
 protected:
     TypeExpr(TypeExpression typeExpr) : typeExpression(typeExpr) {}
+};
+class fundecl
+{
+public:
+    std::string name;
+    std::unique_ptr<TypeExpr> params;
+    std::unique_ptr<TypeExpr> outp;
+    fundecl(std::string name, std::unique_ptr<TypeExpr> param, std::unique_ptr<TypeExpr> outp) : name(std::move(name)), params(std::move(param)), outp(std::move(outp)) {};
 };
 
 // Type Expressions
@@ -91,7 +101,7 @@ public:
 class FuncType : public TypeExpr
 {
 public:
-    FuncType(std::vector<std::unique_ptr<TypeExpr>> params, std::unique_ptr<TypeExpr> returnType)
+    FuncType(vector<std::unique_ptr<TypeExpr>> params, std::unique_ptr<TypeExpr> returnType)
         : TypeExpr(TypeExpression::FUNC_TYPE), params(std::move(params)), returnType(std::move(returnType)) {}
     void accept(ASTVisitor &visitor) override
     {
@@ -687,8 +697,8 @@ public:
 class Program
 {
 public:
-    explicit Program(std::vector<std::unique_ptr<Stmt>> Statements, vector<std::unique_ptr<Decl>> Declarations)
-        : statements(std::move(Statements)), declarations(std::move(Declarations)) {}
+    explicit Program(std::vector<std::unique_ptr<Stmt>> Statements)
+        : statements(std::move(Statements)) {}
     void accept(ASTVisitor &visitor)
     {
         visitor.visit(*this);
