@@ -75,7 +75,8 @@ public:
     std::string name;
     std::unique_ptr<TypeExpr> params;
     std::unique_ptr<TypeExpr> outp;
-    fundecl(std::string name, std::unique_ptr<TypeExpr> param, std::unique_ptr<TypeExpr> outp) : name(std::move(name)), params(std::move(param)), outp(std::move(outp)) {};
+    fundecl(std::string name, std::unique_ptr<TypeExpr> param, std::unique_ptr<TypeExpr> outp) :
+    name(std::move(name)), params(std::move(param)), outp(std::move(outp)) {};
 };
 
 // Type Expressions
@@ -248,7 +249,7 @@ class Expr
 public:
     virtual ~Expr() = default;
     virtual void accept(ASTVisitor& visitor) = 0;
-    virtual void accept(ExpoSEVisitor *visitor) =0;    virtual std::unique_ptr<Expr> clone() const = 0;
+    virtual std::unique_ptr<Expr> clone() const = 0;
 
 
     ExpressionType expressionType;
@@ -269,7 +270,7 @@ public:
     {
         return name < v.name;
     }
-    void accept(ExpoSEVisitor *visitor) override
+    void accept(ExpoSEVisitor *visitor)
     {
     }
 
@@ -291,12 +292,12 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor) override
+    void accept(ExpoSEVisitor *visitor)
     {
-        for (auto &arg : args)
-        {
-            visitor->visitExpr(*arg);
-        }
+        // for (auto &arg : args)
+        // {
+        //     visitor->visitExpr(*arg);
+        // }
     }
     std::unique_ptr<Expr> clone() const override{
         vector<unique_ptr<Expr>>clonedArgs;
@@ -320,9 +321,9 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor) override
+    void accept(ExpoSEVisitor *visitor)
     {
-        visitor->visitNum(*this);
+        // visitor->visitNum(*this);
     }
 
     std::unique_ptr<Expr> clone() const override{
@@ -341,7 +342,7 @@ public:
     {
         visitor.visit(*this);
     }
-    void accept(ExpoSEVisitor *visitor) override
+    void accept(ExpoSEVisitor *visitor)
     {
         // visitor->visitString(*this);
     }
@@ -361,7 +362,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor) override
+    void accept(ExpoSEVisitor *visitor)
     {
         for (auto &e : elements)
         {
@@ -396,7 +397,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor) override
+    void accept(ExpoSEVisitor *visitor)
     {
         for (auto &v : value)
         {
@@ -443,10 +444,10 @@ public:
 
     void accept(ExpoSEVisitor *visitor)
     {
-        for (auto &e : expr)
-        {
-            visitor->visitExpr(*e);
-        }
+        // for (auto &e : expr)
+        // {
+        //     visitor->visitExpr(*e);
+        // }
     }
 
     std::unique_ptr<Expr> clone() const override{
@@ -478,9 +479,9 @@ public:
         //     visitor->visitTypeExpr(*param);
         // }
         // visitor->visitHTTPResponseCode(returnType.first);
-        for(auto& te: returnType.second){
-            // visitor->visitTypeExpr(*te);
-        }
+        // for(auto& te: returnType.second){
+        //     // visitor->visitTypeExpr(*te);
+        // }
     }
 
     std::string name;
@@ -501,7 +502,7 @@ public:
 
     void accept(ExpoSEVisitor *visitor)
     {
-        visitor->visitExpr(*expr);
+        // visitor->visitExpr(*expr);
     }
 
     std::string varName;
@@ -521,7 +522,7 @@ public:
     void accept(ExpoSEVisitor *visitor)
     {
         // visitor->visitHTTPResponseCode(code);
-        visitor->visitExpr(*expr);
+        // visitor->visitExpr(*expr);
     }
 };
 class APIcall
@@ -536,7 +537,7 @@ public:
 
     void accept(ExpoSEVisitor *visitor)
     {
-        visitor->visitFuncCall(*call);
+        // visitor->visitFuncCall(*call);
         // visitor->visitResponse(response);
     }
 
@@ -557,7 +558,7 @@ public:
 
     void accept(ExpoSEVisitor *visitor)
     {
-        visitor->visitExpr(*pre);
+        // visitor->visitExpr(*pre);
         // visitor->visitAPIcall(*call);
         // visitor->visitResponse(response);
     }
@@ -590,17 +591,17 @@ public:
         //     visitor->visitDecl(*global);
         // }
 
-        for(auto& i: init){
-            visitor->visitInit(*i);
-        }
-
-        for(auto& function: functions){
-            // visitor->visitFuncDecl(*function);
-        }
-
-        for(auto& block: blocks){
-            // visitor->visitAPI(*block);
-        }
+        // for(auto& i: init){
+        //     visitor->visitInit(*i);
+        // }
+        //
+        // for(auto& function: functions){
+        //     // visitor->visitFuncDecl(*function);
+        // }
+        //
+        // for(auto& block: blocks){
+        //     // visitor->visitAPI(*block);
+        // }
     }
 
     std::vector<std::unique_ptr<Decl>> globals;
@@ -615,7 +616,7 @@ class Stmt
 public:
     virtual ~Stmt() = default;
     virtual void accept(ASTVisitor &visitor)  = 0;
-    virtual void accept(ExpoSEVisitor *visitor)  = 0;
+    // virtual void accept(ExpoSEVisitor *visitor)  = 0;
     StatementType statementType;
     virtual std::unique_ptr<Stmt> clone() const=0;
     // virtual std::unique_ptr<Stmt> clone() const = 0;
@@ -634,9 +635,9 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor)  override
+    void accept(ExpoSEVisitor *visitor)
     {
-        visitor->visitVar(*left);
+        // visitor->visitVar(*left);
         visitor->visitExpr(*right);
     }
 
@@ -672,7 +673,7 @@ public:
         visitor.visit(*this);
     }
 
-    void accept(ExpoSEVisitor *visitor)  override
+    void accept(ExpoSEVisitor *visitor)
     {
         cout<<"Hey funcCall\n"; 
         visitor->visitFuncCall(*call);

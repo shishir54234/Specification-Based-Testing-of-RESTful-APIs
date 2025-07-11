@@ -8,7 +8,7 @@
 #include <map>
 #include <vector>
 #include <set>
-
+#include "visitor.h
 #include "jsCodeGen.h"
 #include "../ast.hpp"
 
@@ -26,6 +26,34 @@ string CodeGenerator::indent(string line, string istring, int level) {
 	line = indentation + line;
 	return line;
 }
+string CodeGenerator::generateCode(Program& program) const {
+    visitor->visitProgram(program);
+
+    string raw = visitor->retrieve();
+    // std::cout << strings.size() << std::endl;
+    cout<<"This is raw string"<<endl;
+    cout<<raw<<endl;
+    const regex del("\n");
+    sregex_token_iterator it(raw.begin(), raw.end(), del, -1);
+    sregex_token_iterator end;
+    vector<string> lines;
+    while (it != end) {
+        // cout<<"line: "<<*it<<endl;
+        lines.push_back(*it);
+        ++it;
+    }
+
+    string indentedCode = "";
+    for(int i=lines.size()-1;i>=0;i--) {
+        indentedCode += lines[i] + '\n';
+    }
+    // cout<<"indented code: "<<indentedCode;
+    return indentedCode;
+}
+CodeGenerator::~CodeGenerator() {
+    delete visitor;
+}
+
 string ExpoSEVisitor::retrieve()
 {
     if(strings.empty())
@@ -41,30 +69,6 @@ string ExpoSEVisitor::pop(stack<string> &s)
     string top = s.top();
     s.pop();
     return top;
-}
-string CodeGenerator::generateCode(Program& program) {
-    visitor->visitProgram(program);
-
-    string raw = visitor->retrieve();
-    // std::cout << strings.size() << std::endl;
-    cout<<"This is raw string"<<endl;
-    cout<<raw<<endl;
-    regex del("\n");
-    sregex_token_iterator it(raw.begin(), raw.end(), del, -1);
-    sregex_token_iterator end;
-    vector<string> lines;
-    while (it != end) {
-        // cout<<"line: "<<*it<<endl;
-        lines.push_back(*it);
-        ++it;
-    }
-	
-    string indentedCode = "";
-    for(int i=lines.size()-1;i>=0;i--) {
-	    indentedCode += lines[i] + '\n';
-    }
-    // cout<<"indented code: "<<indentedCode;
-    return indentedCode;
 }
 
 
@@ -132,7 +136,7 @@ void ExpoSEVisitor::visitFuncCallStmt(FuncCallStmt& f) {
 }
 
 
-void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
+void ExpoSEVisitor::visitFuncCall(const FuncCall& f) {
     // cout<<"enterred visit FuncCall"<<endl;
     // cout<<"Function Name: "<<f.name<<endl;
     // f.accept(this);
@@ -195,24 +199,7 @@ void ExpoSEVisitor::visitFuncCall(FuncCall& f) {
         strings.push(assign + name + "(" + args + ")");
         return;
     }
-
-    // if(f.name == "getStudent"){ //example of getRequest
-    //     string apiNumber = "1";// need to get it convertfunction again from atc
-    //     string apiUrl = "http://localhost:5000/getStudent"; //need to get it from atc
-    //     string comma_seperated_args = "arg1: 22, arg2: 22, arg3: 22"; //need to get this from the arguments
-    //     string list_of_args = "{" + comma_seperated_args + "}";
-    //     string call = "fetchData( \"" + apiUrl + "\" , " + list_of_args + ")";
-    //     string apicall = "var result" + apiNumber + " = " + call;
-        
-    //     strings.push(apicall);
-    //     return;
-    // }
-
     strings.push(name + "(" + args + ")");
-    // cout<<"exiting visit FuncCall"<<endl;
-}
-CodeGenerator::~CodeGenerator() {
-    delete visitor;
 }
 
 
@@ -231,8 +218,6 @@ void ExpoSEVisitor::visitStmt(Stmt& s) {
         break;  
     }
 }
-// ExpoSEVisitor::~ExpoSEVisitor() {}
-
 void ExpoSEVisitor::visitAssign(Assign& a) {
     // cout<<"reached visit Assign";
     // a.accept(this);
@@ -245,14 +230,11 @@ void ExpoSEVisitor::visitAssign(Assign& a) {
 ExpoSEVisitor::~ExpoSEVisitor() {}
 
 void ExpoSEVisitor::visitVar(Var& v) {
-    // v.accept(this);
     string a = v.name;
-    // cout<<"Yo this is name:"<<a<<endl;
     strings.push(v.name);
 }
 
 void ExpoSEVisitor::visitNum(Num& n) {
-    // n.accept(this);
     strings.push(to_string(n.value));
 }
 void ExpoSEVisitor::visitString(String &s)
@@ -261,14 +243,11 @@ void ExpoSEVisitor::visitString(String &s)
 }
 
 void ExpoSEVisitor :: visitProgram(Program& program) {
-    // cout<<"entered visit Program";
-    // program.accept(this);
     int cnt=0;
     for(auto& stmt : program.statements)  
     {
         cout<<cnt++<<endl;
-        // cout << "This statement is an instance of " << typeid(*stmt).name() << endl;
-        
+
         stmt->accept(this);
     }
     string resultantProgram;

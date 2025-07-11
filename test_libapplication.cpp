@@ -5,7 +5,7 @@
 #include "ast.hpp"
 #include "algo.hpp"
 #include "library_apispec_examples/Entry.hpp"
-#include "./symbol_table.hpp"
+// #include "./symbol_table.hpp"
 using namespace std;
 
 void test_everything(){
@@ -23,12 +23,12 @@ void test_everything(){
     //     stmts.push_back(move(stmt));
     // }
     p.accept(visitor);
-    ExpoSECodeGenerator ecg;
-
-    cout<<"generating expoSE code:\n";
-    string code = ecg.generateCode(p);
-    cout << code;
-    // jsCodeGen printer;
+    // ExpoSECodeGenerator ecg;
+    //
+    // cout<<"generating expoSE code:\n";
+    // string code = ecg.generateCode(p);
+    // cout << code;
+    // // jsCodeGen printer;
     // p.accept(printer);
 }
 

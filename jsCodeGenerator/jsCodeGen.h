@@ -19,7 +19,7 @@ class CodeGenerator {
         static string indent(string, string, int);
     public:
         CodeGenerator(ExpoSEVisitor *v);
-        string generateCode(Program&);
+        string generateCode(Program&) const;
         virtual ~CodeGenerator();
     };
 

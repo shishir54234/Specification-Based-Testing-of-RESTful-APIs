@@ -61,7 +61,7 @@ public:
     void visitExpr(Expr &);
     // virtual void visitPolymorphicFuncCall(PolymorphicFuncCall&);
     void visitVar(Var &);
-    void visitFuncCall(FuncCall &);
+    void visitFuncCall(const FuncCall &);
     void visitNum(Num &);
     void visitSet(Set &);
     void visitMap(Map &);
@@ -69,15 +69,15 @@ public:
     // virtual void visitTuple(Tuple&);
     // virtual void visitFuncDecl(FuncDecl&);
     void visitInit(Init &);
-    // virtual void visitResponse(Response&);
+    // virtual void c(Response&);
     // virtual void visitAPIcall(APIcall&);
     //    virtual void visitAPI(API&);
         // virtual void visitSpec(Spec&);
-        void visitStmt(Stmt&);
-        void visitAssign(Assign&);
-        void visitFuncCallStmt(FuncCallStmt&);
-        void visitProgram(Program&);
-        ~ExpoSEVisitor();
+    void visitStmt(Stmt&);
+    void visitAssign(Assign&);
+    void visitFuncCallStmt(FuncCallStmt&);
+    void visitProgram(Program&);
+    ~ExpoSEVisitor();
 };
 
 
